@@ -1,25 +1,26 @@
 #!/bin/bash
+gcc -o 'Tree&ABR' 'Tree&ABR.c' -lm
 validCommand=0
-if (( $# < 1 || $# > 2 )); then
+if (( $# < 1 || $# > 3 )); then
   validCommand=-1
 fi
 
-case $1 in #PARSE FIRST ARGUMENT
+case $2 in #PARSE FIRST ARGUMENT
   "--help")
     if (( $# != 1 )); then
       validCommand=-1
     else
-      echo "Usage: $0 <command> [arguments]"
-      echo "$0 histo <max|src|real>"
-      echo "$0 leaks \"Facility ID\""
+      echo "Usage: $0 [path] <command> [arguments]"
+      echo "$0 [path] histo <max|src|real>"
+      echo "$0 [path] leaks \"Facility ID\""
       exit 0
     fi
     ;;
   "histo")
-    if (( $# != 2 )); then
+    if (( $# != 3 )); then
       validCommand=-1
     else
-      case $2 in #PARSE SECOND ARGUMENT
+      case $3 in #PARSE SECOND ARGUMENT
         "max")
           validCommand=1
           ;;
@@ -34,7 +35,7 @@ case $1 in #PARSE FIRST ARGUMENT
     fi
     ;;
   "leaks")
-    if (( $# != 2 )); then
+    if (( $# != 3 )); then
       validCommand=-1
     else
       validCommand=4
@@ -50,6 +51,7 @@ case $validCommand in
     ;;
   2) #SRC COMMAND
     echo "SRC COMMAND"
+    grep -E "^-;" "$1" | './Tree&ABR'
     exit 0
     ;;
   3) #REAL COMMAND
