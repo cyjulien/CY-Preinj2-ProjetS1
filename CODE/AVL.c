@@ -1,9 +1,5 @@
-typedef struct _treeNode{
-  int value;
-  struct _treeNode* right;
-  struct _treeNode* left;
-  int balanced;
-} TreeNode;
+#include "./main.h"
+#include "./AVL.h"
 
 TreeNode* makeTreeNode(int value) {
   TreeNode* treeNode = NULL;
