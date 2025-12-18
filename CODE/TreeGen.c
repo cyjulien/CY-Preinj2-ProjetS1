@@ -34,8 +34,8 @@ int main(int argc, char const *argv[]) {
     Instance* firstInstance = malloc(sizeof(Instance));
     i = 0;
     strcpy(firstInstance->id, upstreamId);
-    firstInstance->volumeIn = strcmp(volume, "-") == 0 ? -1 : atoi(volume);
-    firstInstance->leaksOut = strcmp(leaks, "-") == 0 ? -1.0 : atof(leaks);
+    firstInstance->volumeIn = strcmp(volume, "0") == 0 ? 0 : atoi(volume) == 0 ? -1 : atoi(volume);
+    firstInstance->leaksOut = strcmp(leaks, "0") == 0 ? 0 : atof(leaks) ==0 ? -1 : atof(leaks);
     firstInstance->plantSrc = findAVL(plantSrc);
     insertTree(firstInstance->downstream, findAVL(downstreamId));
     insertTree(parent(findAVL(upstreamId)), firstInstance);
