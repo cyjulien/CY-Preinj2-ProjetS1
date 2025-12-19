@@ -1,5 +1,27 @@
 #!/bin/bash
 
+generate_plot() {
+    local csv_file=$1
+    local png_file=$2
+    local title=$3
+
+    gnuplot <<EOF
+set datafile separator ','
+set terminal pngcairo size 1200,800
+set output '${png_file}'
+
+set title '${title}'
+set xlabel 'factory identifier'
+set ylabel 'million cubic meters'
+
+set xtics rotate by 45 right
+set style fill solid 0.8
+set boxwidth 0.8
+
+plot '${csv_file}' using (\$2/1000):xtic(1) with boxes notitle
+EOF
+}
+
 # start Runtime
 start=$(date +%s.%N)
 
@@ -67,8 +89,13 @@ case $validCommand in
     echo "MAX COMMAND"
     grep -E '^-[;][^;]+;-[;][0-9]+;-$' $1 | ./histo/max
     echo "GREP DONE"
+
+    if [ ! -d "../Histogram" ]; then
+        mkdir -p ../Histogram
+    fi
+
     for f in top10 bottom50; do
-        gnuplot -e "set datafile separator ','; set terminal pngcairo; set output '../Histogram/${f}.png'; plot 'histo/${f}.csv' using 2:xtic(1) with boxes"
+        generate_plot "histo/${f}.csv" "../Histogram/${f}.png" "Production per factory (${f})"
     done
     ;;
   2) #SRC COMMAND
