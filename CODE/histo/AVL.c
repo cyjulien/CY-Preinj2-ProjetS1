@@ -77,14 +77,14 @@ Node* doubleRotateTreeRight(Node** node) {
 }
 
 Node* balanceAVL(Node** node) {
-  if ((*node)->balanced >= 2) {
+  if ((*node)->balanced >= 2 && (*node)->right) {
     if ((*node)->right->balanced >= 0) {
       return rotateTreeLeft(node);
     } else {
       return doubleRotateTreeLeft(node);
     }
   }
-  else if ((*node)->balanced <= -2) {
+  else if ((*node)->balanced <= -2 && (*node)->left) {
     if ((*node)->left->balanced <= 0) {
       return rotateTreeRight(node);
     } else {
@@ -99,14 +99,14 @@ Node* addChildAVL(Node** node, Facility* address, int* h) {
 
   if (*node == NULL) {
     *h = 1;
-    *node = makeNode(address);
+    *node = makeNodeAVL(address);
   }
-  else if (address->id < (*node)->address->id) {
-    (*node)->left = addChildAVL(&(*node)->left, n, h);
+  else if (strcmp(address->id, (*node)->address->id) < 0) {
+    (*node)->left = addChildAVL(&(*node)->left, address, h);
     *h = -*h;
   }
-  else if (n > (*node)->address->id) {
-    (*node)->right = addChildAVL(&(*node)->right, n, h);
+  else if (strcmp(address->id, (*node)->address->id) > 0) {
+    (*node)->right = addChildAVL(&(*node)->right, address, h);
   }
   else {
     *h = 0;
@@ -148,16 +148,16 @@ Node* deleteMin(Node** node, char* nodeToDelete, int* h) {
   }
   return *node;
 }
-Node* deleteElementAVL(Node** node, int n, int* h) {
+Node* deleteElementAVL(Node** node, Facility* address, int* h) {
   if (*node == NULL) {
     *h = 0;
     return *node;
   }
-  else if (n > (*node)->address->id) {
-    (*node)->right = deleteElementAVL(&(*node)->right, n, h);
+  else if (strcmp(address->id, (*node)->address->id) < 0) {
+    (*node)->right = deleteElementAVL(&(*node)->right, address, h);
   }
-  else if (n < (*node)->address->id) {
-    (*node)->left = deleteElementAVL(&(*node)->left, n, h);
+  else if (strcmp(address->id, (*node)->address->id) > 0) {
+    (*node)->left = deleteElementAVL(&(*node)->left, address, h);
     *h = -*h;
   }
   else if (hasRightChild(*node)) {

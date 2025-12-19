@@ -24,6 +24,6 @@ Node* balanceAVL(Node** node);
 
 Node* addChildAVL(Node** node, Facility* address, int* h);
 Node* deleteMin(Node** tree, char* nodeToDelete, int* h);
-Node* deleteElementAVL(Node** node, int n, int* h);
+Node* deleteElementAVL(Node** node, Facility* address, int* h);
 
 void printTree(Node *root, int space);
