@@ -3,11 +3,11 @@
 # start Runtime
 start=$(date +%s.%N)
 
-# check fil existence
-if [[ -f "Tree&ABR.c" ]]; then
-    gcc -o "Tree&ABR" "Tree&ABR.c" -lm
+# check file existence
+if [ -f "TreeGen.c" ]; then
+    gcc -o "TreeGen" "TreeGen.c" -lm
 else
-    echo "Error: The file Tree&ABR.c does not exist"
+    echo "Error: The file TreeGen.c does not exist"
     exit 1
 # TODO : repeat for each file
 fi
@@ -17,17 +17,18 @@ if (( $# < 1 || $# > 3 )); then
   validCommand=-1
 fi
 
+if [[ $1 -ne "--help" ]]; then
+  if (( $# != 1 )); then
+    validCommand=-1
+  else
+    echo "Usage: $0 [path] <command> [arguments]"
+    echo "$0 [path] histo <max|src|real>"
+    echo "$0 [path] leaks \"Facility ID\""
+    exit 0
+  fi
+fi
+
 case $2 in #PARSE FIRST ARGUMENT
-  "--help")
-    if (( $# != 1 )); then
-      validCommand=-1
-    else
-      echo "Usage: $0 [path] <command> [arguments]"
-      echo "$0 [path] histo <max|src|real>"
-      echo "$0 [path] leaks \"Facility ID\""
-      exit 0
-    fi
-    ;;
   "histo")
     if (( $# != 3 )); then
       validCommand=-1
@@ -63,7 +64,7 @@ case $validCommand in
     ;;
   2) #SRC COMMAND
     echo "SRC COMMAND"
-    grep -E "^-;" "$1" | './Tree&ABR'
+    grep -E "^-;" "$1" | './Histo/TreeGen'
     exit 0
     ;;
   3) #REAL COMMAND
