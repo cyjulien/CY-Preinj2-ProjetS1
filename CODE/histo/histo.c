@@ -22,9 +22,6 @@ int compare_real(const void *a, const void *b) {
 }
 
 int main(int argc, char const *argv[]) {
-
-  printf("\n %s \n ", argv[1]);
-
   char buf[256];
   int n = 0;
   int h = 0;
@@ -93,13 +90,11 @@ int main(int argc, char const *argv[]) {
 
   if (strcmp(argv[1], "max") == 0) {
     qsort(list, n, sizeof(Facility*), compare_max);
-
   } else if (strcmp(argv[1], "src") == 0) {
       qsort(list, n, sizeof(Facility*), compare_src);
-
   } else if (strcmp(argv[1], "real") == 0) {
       qsort(list, n, sizeof(Facility*), compare_real);
-
+  }
 
   deleteAllChilds(&root);
 
@@ -107,7 +102,7 @@ int main(int argc, char const *argv[]) {
   FILE *csv1 = fopen("./histo/bottom50.csv", "w");
   fprintf(csv1, "identifiant,capacite\n");
   for (int i = 0; i < 50 && i < n; i++) {
-      fprintf(csv1, "%s,%d\n", list[i].id, list[i].max);
+      fprintf(csv1, "%s,%d\n", list[i]->id, list[i]->max);
   }
   fclose(csv1);
 
@@ -116,7 +111,7 @@ int main(int argc, char const *argv[]) {
   fprintf(csv2, "identifiant,capacite\n");
   for (int i = n - 10; i < n; i++) {
       if (i >= 0)
-          fprintf(csv2, "%s,%d\n", list[i].id, list[i].max);
+          fprintf(csv2, "%s,%d\n", list[i]->id, list[i]->max);
   }
   fclose(csv2);
 
