@@ -15,6 +15,8 @@ void deleteAllChilds(Node** node);
 void deleteLeftChild(Node** node);
 void deleteRightChild(Node** node);
 
+Node* searchAVL(Node* node, char* id);
+
 Node* rotateTreeLeft(Node** node);
 Node* rotateTreeRight(Node** node);
 Node* doubleRotateTreeLeft(Node** node);
