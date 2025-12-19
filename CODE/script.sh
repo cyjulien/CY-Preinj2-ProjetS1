@@ -3,7 +3,15 @@
 # start Runtime
 start=$(date +%s.%N)
 
-gcc -o 'Tree&ABR' 'Tree&ABR.c' -lm
+# check fil existence
+if [[ -f "Tree&ABR.c" ]]; then
+    gcc -o "Tree&ABR" "Tree&ABR.c" -lm
+else
+    echo "Error: The file Tree&ABR.c does not exist"
+    exit 1
+# TODO : repeat for each file
+fi
+
 validCommand=0
 if (( $# < 1 || $# > 3 )); then
   validCommand=-1
