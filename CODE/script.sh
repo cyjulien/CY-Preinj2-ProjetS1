@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# start Runtime
+start=$(date +%s.%N)
+
 gcc -o 'Tree&ABR' 'Tree&ABR.c' -lm
 validCommand=0
 if (( $# < 1 || $# > 3 )); then
@@ -67,3 +71,9 @@ case $validCommand in
     exit 1
     ;;
 esac
+
+# end Runtime
+end=$(date +%s.%N)
+
+duration=$(echo "($end - $start) * 1000" | bc -l)
+LC_ALL=C printf "Runtime : %.3f milliseconds\n" "$duration"
