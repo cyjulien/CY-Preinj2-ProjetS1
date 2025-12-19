@@ -2,50 +2,41 @@
 Projet de S1 pre-ing 2
 
 while (fgets(buf, sizeof(buf), stdin)) {
-
     char * facilitySrc = strtok( buf, ";" );
     char * id = strtok( NULL, ";" );
     char * aval = strtok( NULL, ";" );
-    char * max = strtok( NULL, ";" );
-    char * fuite = strtok( NULL, ";" );
+    int max = atoi(strtok( NULL, ";" ));
+    float fuite = atof(strtok( NULL, ";" ));
     if (n<10) printf("Reading: %s\n", id);
+
     if (!id || !max) continue;  // sécurité
 
-    Facility = malloc()
-    strncpy(facilities[n].id, id, 31);
-    facilities[n].id[sizeof(facilities[n].id)-1] = '\0';
-    facilities[n].max = atoi(max);
-
-    if (usine) {
-      findAVL(id)->max = usine.max;
-    } else {
-      aa = findAVL(aval);
-      if (NULL) {
-        addChildAVL(facility);
-      }else {
-        if (argv[1] == "src") {
-          aa.src += max;
-        } else {
-          aa.real += max*fuite;
-        }
+    if (strcmp(facilitySrc, "-") == 0 && strcmp(aval, "-") == 0) { //FACILITY
+      Node* exist = searchAVL(root, id);
+      if (!exist) {
+        printf("Facility %s not found\n", id);
+        exit(12);
       }
+      exist->address->max = max;
+    } else { //SOURCE -> FACILITY
+      Node* node = searchAVL(root, aval);
+      Facility* facility = NULL;
+      if (node == NULL) {
+        facility = malloc(sizeof(Facility));
+        if (!facility) exit(88);
+        strncpy(facility->id, aval, sizeof(facility->id)-1);
+        facility->id[sizeof(facility->id)-1] = '\0';
+        facility->max = 0;
+        facility->src = 0;
+        facility->real = 0;
+        int h = 0;
+        addChildAVL(&root, facility, &h);
+        n++;
+      } else facility = node->address;
+
+      facility->src += max;
+      facility->real += max*(1-(fuite/100.0));
+      facility->src = min2(facility->src, max);
+      facility->real = facility->real < max ? facility->real : max;
     }
-    min(aa.src, aa.max)
-
-
-    Facility* facility = malloc;
-    facility.src = strock
-    facility.id = strock
-    facility.max = strock
-    facility.leaks = strock
-    h = 0;
-    addChildAVL(&root, facility, &h);
-
-    //AVL d'abord (créer dans la boucle)
-    //Créer une struct Facility
-    //Check la commande
-    //Convertir en tableau
-    //En fonction de la commande trier les éléments
-
-    n++;
   }
