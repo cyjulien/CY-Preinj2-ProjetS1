@@ -1,5 +1,6 @@
 #include "../main.h"
 #include "./histo.h"
+#include "../utility/utility.h"
 #include "./AVL.h"
 
 int compare_max(const void *a, const void *b) {
@@ -24,7 +25,6 @@ int main(int argc, char const *argv[]) {
 
   printf("\n %s \n ", argv[1]);
 
-
   char buf[256];
   int n = 0;
   int h = 0;
@@ -33,87 +33,81 @@ int main(int argc, char const *argv[]) {
     char * facilitySrc = strtok( buf, ";" );
     char * id = strtok( NULL, ";" );
     char * aval = strtok( NULL, ";" );
-    char * max = atoi(strtok( NULL, ";" ));
-    char * fuite = atof(strtok( NULL, ";" ));
+    int max = atoi(strtok( NULL, ";" ));
+    float fuite = atof(strtok( NULL, ";" ));
     if (n<10) printf("Reading: %s\n", id);
 
     if (!id || !max) continue;  // sécurité
 
-
-
-    if (max == 0 && strcmp(facilitySrc, "-") == 0) { // We check if it's a facility
+    if (strcmp(facilitySrc, "-") == 0 && strcmp(aval, "-") == 0) { //FACILITY
       Node* exist = searchAVL(root, id);
       if (!exist) {
-        printf("\nData is problematic\n");
+        printf("Facility %s not found\n", id);
         exit(12);
       }
       exist->address->max = max;
-    } else {
-      Node* node_avl = searchAVL(root, aval);
-      Facility facility = malloc(sizeof(Facility));
-      if (node_avl == NULL) {
-        facility->id = id;
+    } else { //SOURCE -> FACILITY
+      Node* node = searchAVL(root, aval);
+      Facility* facility = NULL;
+      if (node == NULL) {
+        facility = malloc(sizeof(Facility));
+        if (!facility) exit(88);
+        strncpy(facility->id, aval, sizeof(facility->id)-1);
+        facility->id[sizeof(facility->id)-1] = '\0';
         facility->max = 0;
         facility->src = 0;
         facility->real = 0;
         int h = 0;
-        addChildAVL(&root, &facility, &h);
+        addChildAVL(&root, facility, &h);
         n++;
-      } else facility = node_avl->address;
+      } else facility = node->address;
 
       facility->src += max;
-      facility->real += max*fuite;
+      facility->real += max*(1-(fuite/100.0));
+      facility->src = min2(facility->src, max);
+      facility->real = facility->real < max ? facility->real : max;
     }
-
-    facility->src = min2(facility->src, max);
-    facility->real = facility->src >= max*fuite ? facility->src : max*fuite;
-
-    // Facility facility = malloc(sizeof(Facility));
-    // facility->id = id;
-    // facility->max = 0;
-    // facility->src = 0;
-    // facility->real = 0;
-    //
-    // int h=0;
-    // Node* existing_facility = findAVL(root, &facility);
-    // addChildAVL(&root, &facility, &h);
-
-
-    // strncpy(facilities[n].id, id, 31);
-    // facilities[n].id[sizeof(facilities[n].id)-1] = '\0';
-    // facilities[n].max = atoi(max);
-    //
-    // h = 0;
-    // addChildAVL(&root, &facilities[n], &h);
-    // n++;
-
-    //AVL d'abord (créer dans la boucle)
-    //Créer une struct Facility
-    //Check la commande
-    //Convertir en tableau
-    //En fonction de la commande trier les éléments
-
   }
 
   printTree(root, 0);
   printf("\n");
   printf("Count: %d\n", n);
 
-  // if (argv[1] == "max") {
-  //   /* code */
-  // }
+  void avl_to_list(Node* root, Facility** list, int* index) {
+    if (root == NULL)
+        return;
 
-  Facility facilities[n]; //Liste chainée
-  qsort(facilities, n, sizeof(Facility), compare_facility);
+    avl_to_list(root->left, list, index);
+
+    list[*index] = root->address;
+    (*index)++;
+
+    avl_to_list(root->right, list, index);
+  }
+
+  int index = 0;
+  Facility** list = malloc(n * sizeof(Facility*));
+  avl_to_list(root, list, &index);
+
+
+
+  if (strcmp(argv[1], "max") == 0) {
+    qsort(list, n, sizeof(Facility*), compare_max);
+
+  } else if (strcmp(argv[1], "src") == 0) {
+      qsort(list, n, sizeof(Facility*), compare_src);
+
+  } else if (strcmp(argv[1], "real") == 0) {
+      qsort(list, n, sizeof(Facility*), compare_real);
+
 
   deleteAllChilds(&root);
-
 
   // bottom 50
   FILE *csv1 = fopen("./histo/bottom50.csv", "w");
   fprintf(csv1, "identifiant,capacite\n");
   for (int i = 0; i < 50 && i < n; i++) {
-      fprintf(csv1, "%s,%d\n", facilities[i].id, facilities[i].max);
+      fprintf(csv1, "%s,%d\n", list[i].id, list[i].max);
   }
   fclose(csv1);
 
@@ -122,7 +116,7 @@ int main(int argc, char const *argv[]) {
   fprintf(csv2, "identifiant,capacite\n");
   for (int i = n - 10; i < n; i++) {
       if (i >= 0)
-          fprintf(csv2, "%s,%d\n", facilities[i].id, facilities[i].max);
+          fprintf(csv2, "%s,%d\n", list[i].id, list[i].max);
   }
   fclose(csv2);
 
