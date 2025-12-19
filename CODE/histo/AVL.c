@@ -1,0 +1,199 @@
+#include "../main.h"
+#include "./AVL.h"
+#include "../utility/utility.h"
+
+Node* makeNodeAVL(Facility* address) {
+  Node* node = NULL;
+  node = malloc(sizeof(Node));
+  if (node == NULL) exit(1);
+  node->right = NULL;
+  node->left = NULL;
+  node->address = address;
+  node->balanced = 0;
+  return node;
+}
+
+int hasLeftChild(Node* node) {
+  if (node == NULL) return 0;
+  return node->left != NULL;
+}
+int hasRightChild(Node* node) {
+  if (node == NULL) return 0;
+  return node->right != NULL;
+}
+void deleteAllChilds(Node** node) {
+  if (*node == NULL) return;
+  deleteAllChilds(&(*node)->left);
+  deleteAllChilds(&(*node)->right);
+  free(*node);
+  *node = NULL;
+}
+void deleteLeftChild(Node** node) {
+  if (*node == NULL || (*node)->left == NULL) return;
+  deleteAllChilds(&(*node)->left);
+  (*node)->left = NULL;
+}
+void deleteRightChild(Node** node) {
+  if (*node == NULL || (*node)->right == NULL) return;
+  deleteAllChilds(&(*node)->right);
+  (*node)->right = NULL;
+}
+
+Node* rotateTreeLeft(Node** node) {
+  if (*node == NULL || (*node)->right == NULL) return *node;
+  Node* pivot;
+  int balanceNode, balancePivot;
+  pivot = (*node)->right;
+  (*node)->right = pivot->left;
+  pivot->left = (*node);
+  balanceNode = (*node)->balanced;
+  balancePivot = pivot->balanced;
+  (*node)->balanced = balanceNode - max2(balancePivot, 0) - 1;
+  pivot->balanced = min3(balanceNode-2, balanceNode+balancePivot-2, balancePivot-1);
+  (*node) = pivot;
+  return *node;
+}
+Node* rotateTreeRight(Node** node) {
+  if (*node == NULL || (*node)->left == NULL) return *node;
+  Node* pivot;
+  int balanceNode, balancePivot;
+  pivot = (*node)->left;
+  (*node)->left = pivot->right;
+  pivot->right = (*node);
+  balanceNode = (*node)->balanced;
+  balancePivot = pivot->balanced;
+  (*node)->balanced = balanceNode - min2(balancePivot, 0) + 1;
+  pivot->balanced = max3(balanceNode+2, balanceNode+balancePivot+2, balancePivot+1);
+  (*node) = pivot;
+  return *node;
+}
+Node* doubleRotateTreeLeft(Node** node) {
+  (*node)->right = rotateTreeRight(&(*node)->right);
+  return rotateTreeLeft(node);
+}
+Node* doubleRotateTreeRight(Node** node) {
+  (*node)->left = rotateTreeLeft(&(*node)->left);
+  return rotateTreeRight(node);
+}
+
+Node* balanceAVL(Node** node) {
+  if ((*node)->balanced >= 2) {
+    if ((*node)->right->balanced >= 0) {
+      return rotateTreeLeft(node);
+    } else {
+      return doubleRotateTreeLeft(node);
+    }
+  }
+  else if ((*node)->balanced <= -2) {
+    if ((*node)->left->balanced <= 0) {
+      return rotateTreeRight(node);
+    } else {
+      return doubleRotateTreeRight(node);
+    }
+  }
+  return *node;
+}
+
+Node* addChildAVL(Node** node, Facility* address, int* h) {
+  printf("Compare: %s %s %d\n", address->id, (*node)->address->id, strcmp(address->id, (*node)->address->id));
+
+  if (*node == NULL) {
+    *h = 1;
+    *node = makeNode(address);
+  }
+  else if (address->id < (*node)->address->id) {
+    (*node)->left = addChildAVL(&(*node)->left, n, h);
+    *h = -*h;
+  }
+  else if (n > (*node)->address->id) {
+    (*node)->right = addChildAVL(&(*node)->right, n, h);
+  }
+  else {
+    *h = 0;
+    return *node;
+  }
+  if (*h != 0) {
+    (*node)->balanced = (*node)->balanced + *h;
+    *node = balanceAVL(node);
+    if ((*node)->balanced == 0) {
+      *h = 0;
+    } else {
+      *h = 1;
+    }
+  }
+  return *node;
+}
+Node* deleteMin(Node** node, char* nodeToDelete, int* h) {
+  if (!hasLeftChild(*node)) {
+    strcpy(nodeToDelete, (*node)->address->id);
+    Node* smallestNode = *node;
+    *h = -1;
+    smallestNode = *node;
+    *node = (*node)->right;
+    free(smallestNode);
+    return *node;
+  }
+  else {
+    (*node)->left = deleteMin(&(*node)->left, nodeToDelete, h);
+    *h = -*h;
+  }
+  if (*h != 0) {
+    (*node)->balanced = (*node)->balanced + *h;
+    *node = balanceAVL(node);
+    if ((*node)->balanced == 0) {
+      *h = -1;
+    } else {
+      *h = 0;
+    }
+  }
+  return *node;
+}
+Node* deleteElementAVL(Node** node, int n, int* h) {
+  if (*node == NULL) {
+    *h = 0;
+    return *node;
+  }
+  else if (n > (*node)->address->id) {
+    (*node)->right = deleteElementAVL(&(*node)->right, n, h);
+  }
+  else if (n < (*node)->address->id) {
+    (*node)->left = deleteElementAVL(&(*node)->left, n, h);
+    *h = -*h;
+  }
+  else if (hasRightChild(*node)) {
+    (*node)->right = deleteMin(&(*node)->right, (*node)->address->id, h);
+  }
+  else {
+    Node* leftNode = *node;
+    *node = (*node)->left;
+    free(leftNode);
+    *h = -1;
+    return *node;
+  }
+  if (*h != 0) {
+    (*node)->balanced = (*node)->balanced + *h;
+    *node = balanceAVL(node);
+    if ((*node)->balanced == 0) {
+      *h = -1;
+    } else {
+      *h = 0;
+    }
+  }
+  return *node;
+}
+
+void printTree(Node *root, int space) {//ChatGPT function
+    if (root == NULL) return;
+    // Increase distance between levels
+    int indent = 5;
+    space += indent;
+    // Process right child first (will be printed on top)
+    printTree(root->right, space);
+    // Print current node after space count
+    printf("\n");
+    for (int i = indent; i < space; i++)
+        printf(" ");
+    printf("%s\n", root->address->id);
+    // Process left child (will be printed below)
+    printTree(root->left, space);
+}
