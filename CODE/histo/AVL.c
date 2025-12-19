@@ -39,6 +39,17 @@ void deleteRightChild(Node** node) {
   (*node)->right = NULL;
 }
 
+Node* searchAVL(Node* node, char* id) {
+  if (node == NULL) return NULL;
+  else if (strcmp(id, node->address->id) < 0) {
+    return searchAVL(node->left, id);
+  }
+  else if (strcmp(id, node->address->id) > 0) {
+    return searchAVL(node->right, id);
+  }
+  return node;
+}
+
 Node* rotateTreeLeft(Node** node) {
   if (*node == NULL || (*node)->right == NULL) return *node;
   Node* pivot;
