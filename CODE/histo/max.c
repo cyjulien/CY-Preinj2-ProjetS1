@@ -29,18 +29,24 @@ int main() {
     facilities[n].max = atoi(max);
 
     n++;
-
-
   }
   printf("Count: %d\n", n);
 
   qsort(facilities, n, sizeof(Facility), compare_facility);
-  /*int h = 0;
-  Node* root = makeNodeAVL(&facilities[0]);
-  addChildAVL(&root, &facilities[1], &h);
-  addChildAVL(&root, &facilities[2], &h);
+  int h = 0;
+  Node* root = NULL;
+  for (size_t i = 0; i < 50; i++) {
+    h = 0;
+    addChildAVL(&root, &facilities[i], &h);
+  }
   printTree(root, 0);
-  printf("\n");*/
+  printf("\n");
+  if (isAVL(root, NULL, NULL)) {
+    printf("✅ AVL valide\n");
+  } else {
+    printf("❌ AVL invalide\n");
+  }
+
 
   // bottom 50
   FILE *csv1 = fopen("./histo/bottom50.csv", "w");

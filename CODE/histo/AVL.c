@@ -95,7 +95,6 @@ Node* balanceAVL(Node** node) {
 }
 
 Node* addChildAVL(Node** node, Facility* address, int* h) {
-  printf("Compare: %s %s %d\n", address->id, (*node)->address->id, strcmp(address->id, (*node)->address->id));
 
   if (*node == NULL) {
     *h = 1;
@@ -153,10 +152,10 @@ Node* deleteElementAVL(Node** node, Facility* address, int* h) {
     *h = 0;
     return *node;
   }
-  else if (strcmp(address->id, (*node)->address->id) < 0) {
+  else if (strcmp(address->id, (*node)->address->id) > 0) {
     (*node)->right = deleteElementAVL(&(*node)->right, address, h);
   }
-  else if (strcmp(address->id, (*node)->address->id) > 0) {
+  else if (strcmp(address->id, (*node)->address->id) < 0) {
     (*node)->left = deleteElementAVL(&(*node)->left, address, h);
     *h = -*h;
   }
@@ -196,4 +195,52 @@ void printTree(Node *root, int space) {//ChatGPT function
     printf("%s\n", root->address->id);
     // Process left child (will be printed below)
     printTree(root->left, space);
+}
+
+int height(Node* node) {
+    if (node == NULL) return 0;
+
+    int hl = height(node->left);
+    int hr = height(node->right);
+
+    return 1 + (hl > hr ? hl : hr);
+}
+int isAVL(Node* node, const char* min, const char* max) {
+    if (node == NULL)
+        return 1;
+
+    // 1️⃣ Propriété BST
+    if ((min && strcmp(node->address->id, min) <= 0) ||
+        (max && strcmp(node->address->id, max) >= 0)) {
+        printf("❌ BST violée à %s\n", node->address->id);
+        return 0;
+    }
+
+    // 2️⃣ Vérification récursive
+    if (!isAVL(node->left, min, node->address->id) ||
+        !isAVL(node->right, node->address->id, max))
+        return 0;
+
+    // 3️⃣ Hauteurs
+    int hl = height(node->left);
+    int hr = height(node->right);
+
+    // 4️⃣ Facteur d’équilibre réel
+    int bf = hr - hl;
+
+    // 5️⃣ Vérification AVL
+    if (bf < -1 || bf > 1) {
+        printf("❌ Déséquilibre AVL à %s (bf=%d)\n",
+               node->address->id, bf);
+        return 0;
+    }
+
+    // 6️⃣ Cohérence avec node->balanced
+    if (bf != node->balanced) {
+        printf("⚠️ balanced incohérent à %s (attendu %d, trouvé %d)\n",
+               node->address->id, bf, node->balanced);
+        // pas fatal, mais signalé
+    }
+
+    return 1;
 }
