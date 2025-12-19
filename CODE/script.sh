@@ -26,6 +26,22 @@ set boxwidth 0.8
 plot '${csv_file}' using (\$2/1000):xtic(1) with boxes notitle
 EOF
 }
+histo() {
+  awk -F';' '
+  # --- USINES / UNITES / MODULES (nœuds) ---
+  $1=="-" && $3=="-" && $4 ~ /^[0-9]/ && $2 ~ /^(Plant|Unit|Module) / {
+      print
+  }
+
+  # --- SOURCES -> USINES (captage) ---
+  $1=="-" &&
+  $2 ~ /^(Source|Spring|Well|Well field|Fountain|Resurgence) / &&
+  $3 ~ /^(Plant|Unit|Module) / &&
+  $4 ~ /^[0-9]/ && $5 ~ /^[0-9]/ {
+      print
+  }
+  ' "$1" | ./histo/histo $2
+}
 
 # start Runtime
 start=$(date +%s.%N)
@@ -92,21 +108,7 @@ esac
 case $validCommand in
   1) #MAX COMMAND
     echo "MAX COMMAND"
-    #grep -E '^-[;][^;]+;-[;][0-9]+;-$' $1 | ./histo/histo
-    awk -F';' '
-    # --- USINES / UNITES / MODULES (nœuds) ---
-    $1=="-" && $3=="-" && $4 ~ /^[0-9]/ && $2 ~ /^(Plant|Unit|Module) / {
-        print
-    }
-
-    # --- SOURCES -> USINES (captage) ---
-    $1=="-" &&
-    $2 ~ /^(Source|Spring|Well|Well field|Fountain|Resurgence) / &&
-    $3 ~ /^(Plant|Unit|Module) / &&
-    $4 ~ /^[0-9]/ && $5 ~ /^[0-9]/ {
-        print
-    }
-    ' "$1" | ./histo/histo
+    histo "$1" "$3"
     echo "LOOKING DONE"
 
     for f in top10 bottom50; do
@@ -115,10 +117,20 @@ case $validCommand in
     ;;
   2) #SRC COMMAND
     echo "SRC COMMAND"
-    grep -E "^-;" "$1" | './Histo/TreeGen'
+    histo "$1" "$3"
+    echo "LOOKING DONE"
+
+    for f in top10 bottom50; do
+        generate_plot "histo/${f}.csv" "../Histogram/${f}.png" "Production per factory (${f})"
+    done
     ;;
   3) #REAL COMMAND
-    echo "REAL COMMAND"
+    histo "$1" "$3"
+    echo "LOOKING DONE"
+
+    for f in top10 bottom50; do
+        generate_plot "histo/${f}.csv" "../Histogram/${f}.png" "Production per factory (${f})"
+    done
     ;;
   4) #LEAKS COMMAND
     echo "LEAKS COMMAND"
