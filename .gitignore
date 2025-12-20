@@ -56,3 +56,10 @@ dkms.conf
 
 #vscode files
 .vscode
+
+#Compiled files
+histo
+leaks
+
+#Big data file
+data_v3.dat

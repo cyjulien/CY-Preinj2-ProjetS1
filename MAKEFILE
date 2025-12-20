@@ -1,4 +1,4 @@
-DATA ?= data_v0.dat
+DATA ?= ./DATA/data_v0.dat
 TYPE ?= histo
 ARG ?= max
 
@@ -8,4 +8,4 @@ all:
 	bash $(SCRIPT) $(DATA) $(TYPE) $(ARG)
 
 clean:
-	rm -f ../Histogram/*.png
+	rm -f ./Histogram/*.png

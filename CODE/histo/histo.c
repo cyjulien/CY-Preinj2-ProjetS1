@@ -1,7 +1,6 @@
 #include "../main.h"
+#include "../utility/AVL.h"
 #include "./histo.h"
-#include "../utility/utility.h"
-#include "./AVL.h"
 
 int compare_max(const void *a, const void *b) {
   const Facility *ua = a;
@@ -99,19 +98,19 @@ int main(int argc, char const *argv[]) {
   deleteAllChilds(&root);
 
   // bottom 50
-  FILE *csv1 = fopen("./histo/bottom50.csv", "w");
-  fprintf(csv1, "identifiant,capacite\n");
+  FILE *csv1 = fopen("../DATA/bottom50.csv", "w");
+  fprintf(csv1, "id,max,src,real\n");
   for (int i = 0; i < 50 && i < n; i++) {
-      fprintf(csv1, "%s,%d\n", list[i]->id, list[i]->max);
+      fprintf(csv1, "%s,%d\n", list[i]->id, list[i]->max, list[i]->src, list[i]->real);
   }
   fclose(csv1);
 
   // top 10
-  FILE *csv2 = fopen("./histo/top10.csv", "w");
-  fprintf(csv2, "identifiant,capacite\n");
+  FILE *csv2 = fopen("../DATA/top10.csv", "w");
+  fprintf(csv2, "id,max,src,real\n");
   for (int i = n - 10; i < n; i++) {
       if (i >= 0)
-          fprintf(csv2, "%s,%d\n", list[i]->id, list[i]->max);
+          fprintf(csv1, "%s,%d\n", list[i]->id, list[i]->max, list[i]->src, list[i]->real);
   }
   fclose(csv2);
 

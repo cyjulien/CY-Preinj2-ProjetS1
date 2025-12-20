@@ -1,9 +1,12 @@
 #!/bin/bash
 
+# start Runtime
+start=$(date +%s.%N)
+
 generate_plot() {
 
-  if [ ! -d "../Histogram" ]; then
-      mkdir -p ../Histogram
+  if [ ! -d "./Histogram" ]; then
+      mkdir -p ./Histogram
   fi
 
   local csv_file=$1
@@ -31,23 +34,20 @@ EOF
 
 histo() {
   awk -F';' '
-  # --- USINES / UNITES / MODULES (nœuds) ---
+  #FACILITY
   $1=="-" && $3=="-" && $4 ~ /^[0-9]/ && $2 ~ /^(Plant|Unit|Module) / {
       print
   }
 
-  # --- SOURCES -> USINES (captage) ---
+  #SOURCE -> FACILITY
   $1=="-" &&
   $2 ~ /^(Source|Spring|Well|Well field|Fountain|Resurgence) / &&
   $3 ~ /^(Plant|Unit|Module) / &&
   $4 ~ /^[0-9]/ && $5 ~ /^[0-9]/ {
       print
   }
-  ' "$1" | ./histo/histo $2
+  ' "$1" | ./CODE/histo/histo $2
 }
-
-# start Runtime
-start=$(date +%s.%N)
 
 validCommand=0
 if (( $# < 1 || $# > 3 )); then
@@ -67,11 +67,11 @@ fi
 
 case $2 in #PARSE FIRST ARGUMENT
   "histo")
-    # check file existence
-    if [[ -f "./histo/histo.c" ]]; then
-        gcc -o "histo/histo" "histo/histo.c" "histo/AVL.c" "utility/utility.c" -lm
+    #Check file existence
+    if [[ -f "./CODE/histo/histo.c" ]]; then
+        gcc -o "./CODE/histo/histo" "./CODE/histo/histo.c" "./CODE/histo/AVL.c" "./CODE/utility/utility.c" -lm
     else
-        echo "Error: The file histo/histo.c does not exist"
+        echo "Error: The file /CODE/histo/histo.c does not exist"
         exit 1
     fi
     if (( $# != 3 )); then
@@ -93,10 +93,10 @@ case $2 in #PARSE FIRST ARGUMENT
     ;;
   "leaks")
     # check file existence
-    if [[ -f "leaks/TreeGen.c" ]]; then
-        gcc -o "leaks/TreeGen" "leaks/TreeGen.c" -lm
+    if [[ -f "./CODE/leaks/TreeGen.c" ]]; then
+        gcc -o "./CODE/leaks/TreeGen" "./CODE/leaks/TreeGen.c" -lm
     else
-        echo "Error: The file leaks/TreeGen.c does not exist"
+        echo "Error: The file /CODE/leaks/TreeGen.c does not exist"
         exit 1
     fi
     if (( $# != 3 )); then
@@ -115,7 +115,7 @@ case $validCommand in
     echo "LOOKING DONE"
 
     for f in top10 bottom50; do
-        generate_plot "histo/${f}.csv" "../Histogram/max_${f}.png" "Maximum processing volume for each (${f}) facility"
+        generate_plot "./DATA/histo/${f}.csv" "./Histogram/max_${f}.png" "Maximum processing volume for each (${f}) facility"
     done
     ;;
   2) #SRC COMMAND
@@ -124,7 +124,7 @@ case $validCommand in
     echo "LOOKING DONE"
 
     for f in top10 bottom50; do
-        generate_plot "histo/${f}.csv" "../Histogram/src_${f}.png" "Total volume captured by the sources of (${f}) facility"
+        generate_plot "./DATA/histo/${f}.csv" "./Histogram/src_${f}.png" "Total volume captured by the sources of (${f}) facility"
     done
     ;;
   3) #REAL COMMAND
@@ -132,7 +132,7 @@ case $validCommand in
     echo "LOOKING DONE"
 
     for f in top10 bottom50; do
-        generate_plot "histo/${f}.csv" "../Histogram/real_${f}.png" "Total volume actually processed for (${f}) facility"
+        generate_plot "./DATA/histo/${f}.csv" "./Histogram/real_${f}.png" "Total volume actually processed for (${f}) facility"
     done
     ;;
   4) #LEAKS COMMAND

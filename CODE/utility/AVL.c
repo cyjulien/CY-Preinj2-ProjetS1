@@ -1,6 +1,6 @@
 #include "../main.h"
 #include "./AVL.h"
-#include "../utility/utility.h"
+#include "./utility.h"
 
 Node* makeNodeAVL(Facility* address) {
   Node* node = NULL;
