@@ -23,9 +23,12 @@ set xtics rotate by 45 right
 set style fill solid 0.8
 set boxwidth 0.8
 
-plot '${csv_file}' using (\$2/1000):xtic(1) with boxes notitle
+set key outside right top
+
+plot '${csv_file}' using (\$2/1000):xtic(1) with boxes title '${title}'
 EOF
 }
+
 histo() {
   awk -F';' '
   # --- USINES / UNITES / MODULES (nœuds) ---
@@ -112,7 +115,7 @@ case $validCommand in
     echo "LOOKING DONE"
 
     for f in top10 bottom50; do
-        generate_plot "histo/${f}.csv" "../Histogram/${f}.png" "Production per factory (${f})"
+        generate_plot "histo/${f}.csv" "../Histogram/max_${f}.png" "Maximum processing volume for each (${f}) facility"
     done
     ;;
   2) #SRC COMMAND
@@ -121,7 +124,7 @@ case $validCommand in
     echo "LOOKING DONE"
 
     for f in top10 bottom50; do
-        generate_plot "histo/${f}.csv" "../Histogram/${f}.png" "Production per factory (${f})"
+        generate_plot "histo/${f}.csv" "../Histogram/src_${f}.png" "Total volume captured by the sources of (${f}) facility"
     done
     ;;
   3) #REAL COMMAND
@@ -129,7 +132,7 @@ case $validCommand in
     echo "LOOKING DONE"
 
     for f in top10 bottom50; do
-        generate_plot "histo/${f}.csv" "../Histogram/${f}.png" "Production per factory (${f})"
+        generate_plot "histo/${f}.csv" "../Histogram/real_${f}.png" "Total volume actually processed for (${f}) facility"
     done
     ;;
   4) #LEAKS COMMAND
