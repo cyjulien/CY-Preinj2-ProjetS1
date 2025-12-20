@@ -69,7 +69,7 @@ case $2 in #PARSE FIRST ARGUMENT
   "histo")
     #Check file existence
     if [[ -f "./CODE/histo/histo.c" ]]; then
-        gcc -o "./CODE/histo/histo" "./CODE/histo/histo.c" "./CODE/histo/AVL.c" "./CODE/utility/utility.c" -lm
+        gcc -o "./CODE/histo/histo" "./CODE/histo/histo.c" "./CODE/utility/AVL.c" "./CODE/utility/utility.c" -lm
     else
         echo "Error: The file /CODE/histo/histo.c does not exist"
         exit 1
