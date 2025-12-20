@@ -38,6 +38,16 @@ void deleteRightChild(Node** node) {
   deleteAllChilds(&(*node)->right);
   (*node)->right = NULL;
 }
+void AVLToList(Node* root, Facility** list, int* index) {
+  if (root == NULL) return;
+
+  AVLToList(root->left, list, index);
+
+  list[*index] = root->address;
+  (*index)++;
+
+  AVLToList(root->right, list, index);
+}
 
 Node* searchAVL(Node* node, char* id) {
   if (node == NULL) return NULL;

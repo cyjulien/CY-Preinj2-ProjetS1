@@ -3,11 +3,15 @@
 # start Runtime
 start=$(date +%s.%N)
 
-generate_plot() {
+#Ensure proper file stucture
+if [ ! -d "./DATA" ]; then
+    mkdir -p ./DATA
+fi
+if [ ! -d "./Histogram" ]; then
+    mkdir -p ./Histogram
+fi
 
-  if [ ! -d "./Histogram" ]; then
-      mkdir -p ./Histogram
-  fi
+generate_plot() {
 
   local csv_file=$1
   local png_file=$2
@@ -68,7 +72,7 @@ fi
 case $2 in #PARSE FIRST ARGUMENT
   "histo")
     #Check file existence
-    if [[ -f "./CODE/histo/histo.c" ]]; then
+    if [[ -f "./CODE/histo/histo.c" ]]; then #Check for all the files "./CODE/histo/histo.c" "./CODE/utility/AVL.c" "./CODE/utility/utility.c"
         gcc -o "./CODE/histo/histo" "./CODE/histo/histo.c" "./CODE/utility/AVL.c" "./CODE/utility/utility.c" -lm
     else
         echo "Error: The file /CODE/histo/histo.c does not exist"
@@ -115,7 +119,11 @@ case $validCommand in
     echo "LOOKING DONE"
 
     for f in top10 bottom50; do
-        generate_plot "./DATA/histo/${f}.csv" "./Histogram/max_${f}.png" "Maximum processing volume for each (${f}) facility"
+      if [[ -f "./DATA/${f}.csv" ]]; then
+          generate_plot "./DATA/${f}.csv" "./Histogram/max_${f}.png" "Maximum processing volume for each (${f}) facility"
+        else
+          echo "Warning: No data found for ${f}, the image will not be generated."
+        fi
     done
     ;;
   2) #SRC COMMAND
@@ -124,7 +132,11 @@ case $validCommand in
     echo "LOOKING DONE"
 
     for f in top10 bottom50; do
-        generate_plot "./DATA/histo/${f}.csv" "./Histogram/src_${f}.png" "Total volume captured by the sources of (${f}) facility"
+        if [[ -f "./DATA/${f}.csv" ]]; then
+          generate_plot "./DATA/${f}.csv" "./Histogram/src_${f}.png" "Total volume captured by the sources of (${f}) facility"
+        else
+          echo "Warning: No data found for ${f}, the image will not be generated."
+        fi
     done
     ;;
   3) #REAL COMMAND
@@ -132,7 +144,11 @@ case $validCommand in
     echo "LOOKING DONE"
 
     for f in top10 bottom50; do
-        generate_plot "./DATA/histo/${f}.csv" "./Histogram/real_${f}.png" "Total volume actually processed for (${f}) facility"
+        if [[ -f "./DATA/${f}.csv" ]]; then
+          generate_plot "./DATA/${f}.csv" "./Histogram/real_${f}.png" "Total volume actually processed for (${f}) facility"
+        else
+          echo "Warning: No data found for ${f}, the image will not be generated."
+        fi
     done
     ;;
   4) #LEAKS COMMAND

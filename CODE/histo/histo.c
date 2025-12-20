@@ -27,20 +27,26 @@ int main(int argc, char const *argv[]) {
   int h = 0;
   Node* root = NULL;
   while (fgets(buf, sizeof(buf), stdin)) {
-    char * facilitySrc = strtok( buf, ";" );
-    char * id = strtok( NULL, ";" );
-    char * aval = strtok( NULL, ";" );
-    int max = atoi(strtok( NULL, ";" ));
-    float fuite = atof(strtok( NULL, ";" ));
+    char* facilitySrc = strtok( buf, ";" );
+    char* id = strtok( NULL, ";" );
+    char* aval = strtok( NULL, ";" );
+    char* tmp = strtok( NULL, ";" );
+    int max = tmp ? atoi(tmp) : 0;
+    tmp = strtok( NULL, ";" );
+    float fuite = tmp ? atof(tmp) : 0.0;
     if (n<10) printf("Reading: %s\n", id);
 
-    if (!id || !max) continue;  // sécurité
+    if (!id || !max) continue;
 
     if (strcmp(facilitySrc, "-") == 0 && strcmp(aval, "-") == 0) { //FACILITY
       Node* exist = searchAVL(root, id);
       if (!exist) {
         printf("Facility %s not found\n", id);
         exit(12);
+      }
+      if (exist->address == NULL) {
+        printf("Facility %s not found\n", id);
+        continue;
       }
       exist->address->max = max;
     } else { //SOURCE -> FACILITY
@@ -58,11 +64,14 @@ int main(int argc, char const *argv[]) {
         addChildAVL(&root, facility, &h);
         n++;
       } else facility = node->address;
+      if (facility == NULL) {
+        printf("Facility %s not found\n", id);
+        continue;
+      }
 
       facility->src += max;
       facility->real += max*(1-(fuite/100.0));
-      facility->src = min2(facility->src, max);
-      facility->real = facility->real < max ? facility->real : max;
+      if (facility->real > max) facility->real = max;
     }
   }
 
@@ -70,36 +79,35 @@ int main(int argc, char const *argv[]) {
   printf("\n");
   printf("Count: %d\n", n);
 
-  void avl_to_list(Node* root, Facility** list, int* index) {
-    if (root == NULL)
-        return;
-
-    avl_to_list(root->left, list, index);
-
-    list[*index] = root->address;
-    (*index)++;
-
-    avl_to_list(root->right, list, index);
-  }
-
   int index = 0;
   Facility** list = malloc(n * sizeof(Facility*));
-  avl_to_list(root, list, &index);
+  if (!list) exit(88);
+  AVLToList(root, list, &index);
 
 
-
+  if (argc < 2) {
+    deleteAllChilds(&root);
+    printf("No command was passed to: histo.c (only %d/2 arguments were read).\n", argc);
+    exit(122);
+  }
+  
   if (strcmp(argv[1], "max") == 0) {
     qsort(list, n, sizeof(Facility*), compare_max);
   } else if (strcmp(argv[1], "src") == 0) {
-      qsort(list, n, sizeof(Facility*), compare_src);
+    qsort(list, n, sizeof(Facility*), compare_src);
   } else if (strcmp(argv[1], "real") == 0) {
-      qsort(list, n, sizeof(Facility*), compare_real);
+    qsort(list, n, sizeof(Facility*), compare_real);
   }
 
   deleteAllChilds(&root);
 
   // bottom 50
-  FILE *csv1 = fopen("../DATA/bottom50.csv", "w");
+  FILE *csv1 = fopen("./DATA/bottom50.csv", "w");
+  if (!csv1) {
+    printf("Failed to open bottom50.csv.\n");
+    exit(54);
+  }
+  
   fprintf(csv1, "id,max,src,real\n");
   for (int i = 0; i < 50 && i < n; i++) {
       fprintf(csv1, "%s,%d,%d,%f\n", list[i]->id, list[i]->max, list[i]->src, list[i]->real);
@@ -107,11 +115,15 @@ int main(int argc, char const *argv[]) {
   fclose(csv1);
 
   // top 10
-  FILE *csv2 = fopen("../DATA/top10.csv", "w");
+  FILE *csv2 = fopen("./DATA/top10.csv", "w");
+  if (!csv2) {
+    printf("Failed to open top10.csv.\n");
+    exit(54);
+  }
   fprintf(csv2, "id,max,src,real\n");
   for (int i = n - 10; i < n; i++) {
       if (i >= 0)
-          fprintf(csv1, "%s,%d,%d,%f\n", list[i]->id, list[i]->max, list[i]->src, list[i]->real);
+          fprintf(csv2, "%s,%d,%d,%f\n", list[i]->id, list[i]->max, list[i]->src, list[i]->real);
   }
   fclose(csv2);
 

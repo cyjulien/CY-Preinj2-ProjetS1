@@ -14,6 +14,7 @@ int hasRightChild(Node* node);
 void deleteAllChilds(Node** node);
 void deleteLeftChild(Node** node);
 void deleteRightChild(Node** node);
+void AVLToList(Node* root, Facility** list, int* index);
 
 Node* searchAVL(Node* node, char* id);
 
