@@ -1,42 +1,66 @@
-# CY-Preinj2-ProjetS1
-Projet de S1 pre-ing 2
+[This README is also available in English !](TODO.html)
 
-while (fgets(buf, sizeof(buf), stdin)) {
-    char * facilitySrc = strtok( buf, ";" );
-    char * id = strtok( NULL, ";" );
-    char * aval = strtok( NULL, ";" );
-    int max = atoi(strtok( NULL, ";" ));
-    float fuite = atof(strtok( NULL, ";" ));
-    if (n<10) printf("Reading: %s\n", id);
+# Projet C-Wildwater
 
-    if (!id || !max) continue;  // sécurité
+Wildwater est un projet de PréIng-2 consistant à réaliser un programme permettant de faire la synthèse de données d’un système de distribution d’eau.
 
-    if (strcmp(facilitySrc, "-") == 0 && strcmp(aval, "-") == 0) { //FACILITY
-      Node* exist = searchAVL(root, id);
-      if (!exist) {
-        printf("Facility %s not found\n", id);
-        exit(12);
-      }
-      exist->address->max = max;
-    } else { //SOURCE -> FACILITY
-      Node* node = searchAVL(root, aval);
-      Facility* facility = NULL;
-      if (node == NULL) {
-        facility = malloc(sizeof(Facility));
-        if (!facility) exit(88);
-        strncpy(facility->id, aval, sizeof(facility->id)-1);
-        facility->id[sizeof(facility->id)-1] = '\0';
-        facility->max = 0;
-        facility->src = 0;
-        facility->real = 0;
-        int h = 0;
-        addChildAVL(&root, facility, &h);
-        n++;
-      } else facility = node->address;
+[documentation](https://cours.cyu.fr/pluginfile.php/22793/mod_folder/content/0/Projet_C-WildWater_preIng2_2025_2026_v1.1.pdf?forcedownload=1)
 
-      facility->src += max;
-      facility->real += max*(1-(fuite/100.0));
-      facility->src = min2(facility->src, max);
-      facility->real = facility->real < max ? facility->real : max;
-    }
-  }
+
+## Ce que vous pouvez faire grossièrement avec ce programme
+
+À l'aide de votre fichier contenant la data de votre réseau de distribution, vous pourrez :
+
+- Obtenir des histogrammes claires sur les propriétés des usines de votre réseau : leur capacité maximale, le volume totale capté par les sources ainsi que le volume totale traité par les usines.
+
+- Calculer avec précision les pertes d'eau dans le réseau aval de l'une de vos usines.
+
+Avec ça, nous vous le disons, vous pourrez étudier votre réseau afin de le modifier avec sagesse ! 
+
+## Guide d'instruction
+
+### TODO : clone git, MAKEFILE, etc...
+
+1. Cloner le repertoire
+```
+git clone https://github.com/cyjulien/CY-Preinj2-ProjetS1.git
+```
+
+2. Changer de directoire:
+```
+cd CY-Preinj2-ProjetS1
+```
+
+3. Profiiter en executant vos commandes !
+
+# documentation des commandes possibles:
+
+Une fois le chemin de votre fichier contenant la data est obtenue, saisissez ces commandes:
+
+Obtenir les histogrammes des 10 premières et 50 dernières usines trié selon la commande:
+```
+
+make DATA=chemin_fichier.dat TYPE=histo ARG=max # Tri par capacité maximale de chaque usine
+
+make DATA=chemin_fichier.dat TYPE=histo ARG=src # Tri par volume totale capté par les sources
+
+make DATA=chemin_fichier.dat TYPE=histo ARG=src # Tri par volume total réellement traité
+
+```
+
+-> Sortie attendu : Deux fichiers .png enregistrées automatiquement dans le repertoire ./Histo
+
+Obtenir l'ensemble des pertes d'eau dans le réseau aval de l'une de vos usines:
+
+```
+
+make DATA=chemin_fichier.dat TYPE=leaks ARG=identifiant_usine
+
+```
+
+-> Sortie attendu : la valeur réel du pourcentage de perte affiché dans le terminal
+
+Nettoyer les fichiers:
+```
+make clean
+```
