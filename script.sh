@@ -104,7 +104,7 @@ if [[ $1 == "--help" ]]; then
     validCommand=-1
   else
     echo "Usage: $0 [path] <command> [arguments]"
-    echo "$0 [path] histo <max|src|real>"
+    echo "$0 [path] histo <max|src|real|all>"
     echo "$0 [path] leaks \"Facility ID\""
     exit 0
   fi
@@ -126,6 +126,9 @@ case $2 in #PARSE FIRST ARGUMENT
         "real")
           validCommand=3
           ;;
+        "all")
+          validCommand=4
+          ;;
         *) validCommand=-1 ;;
       esac
     fi
@@ -135,7 +138,7 @@ case $2 in #PARSE FIRST ARGUMENT
     if (( $# != 3 )); then
       validCommand=-1
     else
-      validCommand=4
+      validCommand=5
     fi
     ;;
   *) validCommand=-1 ;;
@@ -151,7 +154,10 @@ case $validCommand in
   3) #REAL COMMAND
     run_histo_command "$1" "real" 4 "Total volume of water processed for each facility accounting for leaks"
     ;;
-  4) #LEAKS COMMAND
+  4) #ALL COMMAND
+    run_histo_command "$1" "all" 0 "Summary of all data"
+    ;;
+  5) #LEAKS COMMAND
     echo "LEAKS COMMAND"
     ;;
   *) #INVALID COMMAND
