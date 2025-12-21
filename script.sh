@@ -206,9 +206,6 @@ case $validCommand in
     echo "${commandName}: command started..."
     awk -F ';' -v plantID="$3" '
     $1 ~ plantID || $2 ~ plantID || $3 ~ plantID
-    ' "$1" > ./DATA/leaks.txt
-    awk -F ';' -v plantID="$3" '
-    $1 ~ plantID || $2 ~ plantID || $3 ~ plantID
     ' "$1" | ./CODE/leaks/leaks "$3"
     echo "${commandName}: data parsed, generating additional .csv files..."
     echo "${commandName}: .csv files generated, generating images..."
