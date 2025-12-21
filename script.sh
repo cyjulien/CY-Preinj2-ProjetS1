@@ -4,12 +4,19 @@
 start=$(date +%s.%N)
 
 #Ensure proper file stucture
-if [ ! -d "./DATA" ]; then
-    mkdir -p ./DATA
-fi
-if [ ! -d "./Histogram" ]; then
-    mkdir -p ./Histogram
-fi
+mkdir -p ./DATA ./Histogram
+
+extract_top_bottom() {
+  {
+    head -n 1 ./DATA/all.csv
+    tail -n +2 ./DATA/all.csv | sort -t',' -k2,2n | head -n 50
+  } > ./DATA/bottom50.csv
+
+  {
+    head -n 1 ./DATA/all.csv
+    tail -n +2 ./DATA/all.csv | sort -t',' -k2,2n | tail -n 10
+  } > ./DATA/top10.csv
+}
 
 generate_plot() {
 
@@ -78,13 +85,7 @@ fi
 
 case $2 in #PARSE FIRST ARGUMENT
   "histo")
-    #Check file existence
-    if [[ -f "./CODE/histo/histo.c" ]]; then #Check for all the files
-        gcc -o "./CODE/histo/histo" "./CODE/histo/histo.c" "./CODE/utility/AVL.c" "./CODE/utility/utility.c" "./CODE/utility/definition.c" -lm
-    else
-        echo "Error: The file /CODE/histo/histo.c does not exist"
-        exit 1
-    fi
+    make histo || exit 1 
     if (( $# != 3 )); then
       validCommand=-1
     else
@@ -103,13 +104,7 @@ case $2 in #PARSE FIRST ARGUMENT
     fi
     ;;
   "leaks")
-    # check file existence
-    if [[ -f "./CODE/leaks/TreeGen.c" ]]; then
-        gcc -o "./CODE/leaks/TreeGen" "./CODE/leaks/TreeGen.c" -lm
-    else
-        echo "Error: The file /CODE/leaks/TreeGen.c does not exist"
-        exit 1
-    fi
+    make leaks || exit 1 
     if (( $# != 3 )); then
       validCommand=-1
     else
@@ -123,9 +118,11 @@ case $validCommand in
   1) #MAX COMMAND
     commandName="max"
     column=2 #This is the column that will be looked up in the generated .csv
-    echo "${commandName}: command started"
+    echo "${commandName}: command started..."
     histo "$1" "$3" #Send the data to the histo program that will generate a .csv file
-    echo "${commandName}: data parsed"
+    echo "${commandName}: data parsed, generating additional .csv files..."
+    extract_top_bottom
+    echo "${commandName}: .csv files generated, generating images..."
 
     for f in top10 bottom50; do
       if [[ -f "./DATA/${f}.csv" ]]; then
@@ -139,9 +136,11 @@ case $validCommand in
   2) #SRC COMMAND
     commandName="src"
     column=3 #This is the column that will be looked up in the generated .csv
-    echo "${commandName}: command started"
+    echo "${commandName}: command started..."
     histo "$1" "$3" #Send the data to the histo program that will generate a .csv file
-    echo "${commandName}: data parsed"
+    echo "${commandName}: data parsed, generating additional .csv files..."
+    extract_top_bottom
+    echo "${commandName}: .csv files generated, generating images..."
 
     for f in top10 bottom50; do
       if [[ -f "./DATA/${f}.csv" ]]; then
@@ -155,9 +154,11 @@ case $validCommand in
   3) #REAL COMMAND
     commandName="real"
     column=4 #This is the column that will be looked up in the generated .csv
-    echo "${commandName}: command started"
+    echo "${commandName}: command started..."
     histo "$1" "$3" #Send the data to the histo program that will generate a .csv file
-    echo "${commandName}: data parsed"
+    echo "${commandName}: data parsed, generating additional .csv files..."
+    extract_top_bottom
+    echo "${commandName}: .csv files generated, generating images..."
 
     for f in top10 bottom50; do
       if [[ -f "./DATA/${f}.csv" ]]; then

@@ -3,22 +3,17 @@
 #include "../utility/utility.h"
 #include "./histo.h"
 
-int compareMax(const void *a, const void *b) {
-    const Instance *ua = *(const Instance **)a;
-    const Instance *ub = *(const Instance **)b;
-    return ua->max - ub->max;
-}
+void AVLToCSV(FILE* file, Node* root) {
+  if (root == NULL) return;
 
-int compareSrc(const void *a, const void *b) {
-    const Instance *ua = *(const Instance **)a;
-    const Instance *ub = *(const Instance **)b;
-    return ua->volume - ub->volume;
-}
+  AVLToCSV(file, root->right);
 
-int compareReal(const void *a, const void *b) {
-    const Instance *ua = *(const Instance **)a;
-    const Instance *ub = *(const Instance **)b;
-    return (ua->leaks > ub->leaks) - (ua->leaks < ub->leaks);
+  if (root->address != NULL) {
+    if (root->address->leaks > root->address->max) root->address->leaks = root->address->max; //we put this check here to optimize having to traverse the whole AVL
+    if (file != NULL) fprintf(file, "%s,%d,%d,%.6f\n", root->address->id, root->address->max, root->address->volume, root->address->leaks);
+  }
+
+  AVLToCSV(file, root->left);
 }
 
 int main(int argc, char const *argv[]) {
@@ -30,10 +25,8 @@ int main(int argc, char const *argv[]) {
     char* facilitySrc = strtok( input, ";" );
     char* id = strtok( NULL, ";" );
     char* downstream = strtok( NULL, ";" );
-    char* tmp = strtok( NULL, ";" ); //temporary variable to check for NULL
-    int max = tmp ? atoi(tmp) : 0;
-    tmp = strtok( NULL, ";" ); //temporary variable to check for NULL
-    double leaks = tmp ? atof(tmp) : 0.0;
+    int max = atoi(strtok( NULL, ";" ) ?: "0"); //check for NULL
+    double leaks = atof(strtok( NULL, ";" ) ?: "0"); //check for NULL
 
     if (!facilitySrc || !id || !downstream) continue;
     
@@ -71,56 +64,16 @@ int main(int argc, char const *argv[]) {
     }
   }
 
-  int index = 0;
-  Instance** facilities = malloc(n * sizeof(Instance*));
-  if (!facilities) exit(88);
-  AVLToList(root, facilities, &index);
-  for (int i = 0; i < n; i++) {
-    if (facilities[i]->leaks > facilities[i]->max) facilities[i]->leaks = facilities[i]->max;
-  }
-  
-  if (argc < 2) {
-    deleteAllChilds(&root);
-    printf("No command was passed to: histo.c (only %d/2 arguments were read).\n", argc);
-    exit(122);
-  }
-  
-  if (strcmp(argv[1], "max") == 0) {
-    qsort(facilities, n, sizeof(Instance*), compareMax);
-  } else if (strcmp(argv[1], "src") == 0) {
-    qsort(facilities, n, sizeof(Instance*), compareSrc);
-  } else if (strcmp(argv[1], "real") == 0) {
-    qsort(facilities, n, sizeof(Instance*), compareReal);
-  }
-
-  // bottom 50
-  FILE *csv1 = fopen("./DATA/bottom50.csv", "w");
-  if (!csv1) {
-    printf("Failed to open bottom50.csv.\n");
+  FILE* file = fopen("./DATA/all.csv", "w");
+  if (!file) {
+    printf("Failed to open %s.\n", "./DATA/all.csv");
     exit(54);
   }
-  
-  fprintf(csv1, "id,max,src,real\n");
-  for (int i = 0; i < 50 && i < n; i++) {
-    fprintf(csv1, "%s,%d,%d,%.6f\n", facilities[i]->id, facilities[i]->max, facilities[i]->volume, facilities[i]->leaks);
-  }
-  fclose(csv1);
-
-  // top 10
-  FILE *csv2 = fopen("./DATA/top10.csv", "w");
-  if (!csv2) {
-    printf("Failed to open top10.csv.\n");
-    exit(54);
-  }
-  fprintf(csv2, "id,max,src,real\n");
-  for (int i = max2(n - 10, 0); i < n; i++) {
-    fprintf(csv2, "%s,%d,%d,%.6f\n", facilities[i]->id, facilities[i]->max, facilities[i]->volume, facilities[i]->leaks);
-  }
-  fclose(csv2);
+  fprintf(file, "id,max,src,real\n");
+  AVLToCSV(file, root);
+  fclose(file);
 
   deleteAllChilds(&root);
-  
-  free(facilities);
 
   return 0;
 }
