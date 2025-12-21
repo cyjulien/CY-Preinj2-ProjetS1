@@ -19,8 +19,6 @@ Avec ça, nous vous le disons, vous pourrez étudier votre réseau afin de le mo
 
 ## Guide d'instruction
 
-### TODO : clone git, MAKEFILE, etc...
-
 1. Cloner le repertoire
 ```
 git clone https://github.com/cyjulien/CY-Preinj2-ProjetS1.git
