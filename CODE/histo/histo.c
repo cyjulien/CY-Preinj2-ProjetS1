@@ -119,6 +119,7 @@ int main(int argc, char const *argv[]) {
   fclose(csv2);
 
   deleteAllChilds(&root);
+  
   free(facilities);
 
   return 0;
