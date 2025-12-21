@@ -13,10 +13,10 @@ fi
 
 generate_plot() {
 
-  local csv=$1
-  local png=$2
-  local title=$3
-  local col=$4
+  csv=$1
+  png=$2
+  title=$3
+  col=$4
 
   gnuplot <<EOF
 set datafile separator ','
