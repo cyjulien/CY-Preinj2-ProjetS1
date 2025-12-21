@@ -40,7 +40,6 @@ extract_top_bottom() {
 }
 
 generate_plot() {
-
   csv=$1
   png=$2
   title=$3
@@ -50,7 +49,7 @@ generate_plot() {
 set datafile separator ','
 set datafile columnheaders
 
-set terminal pngcairo size 1200,800
+set terminal pngcairo size 1600,900
 set output "${png}"
 
 set title '${title}'
@@ -70,35 +69,34 @@ EOF
 
 generate_plot_all() {
 
-  if [ ! -d "../Histogram" ]; then
-      mkdir -p ../Histogram
-  fi
-
-  local csv_file=$1
-  local png_file=$2
-  local title=$3
+  csv=$1
+  png=$2
+  title=$3
 
   gnuplot <<EOF
 set datafile separator ','
-set terminal pngcairo size 1200,800
-set output '${png_file}'
+set datafile columnheaders
+
+set terminal pngcairo size 1600,900
+set output '${png}'
 
 set title '${title}'
-set xlabel 'factory identifier'
-set ylabel 'million cubic meters'
+set xlabel 'Factory'
+set ylabel 'Volume (in million cubic meters)'
 
 set xtics rotate by 45 right
 set style data histograms
-set style histogram rowstacked
-set style fill solid 0.8 border -1
+set style histogram rowstacked gap 1
+set style fill solid 0.8
 set boxwidth 0.8
-
 set key outside right top
 
+set yrange [0:*] 
+
 plot \
-  '${csv_file}' using (\$4/1000):xtic(1) title 'Volume supplied (réel)' lc rgb 'blue', \
-  '' using ((\$3-\$4)/1000) title 'Lost volume  (src - real)' lc rgb 'red', \
-  '' using ((\$2-\$3)/1000) title 'Remaining volume  (max - src)' lc rgb 'green'
+  '${csv}' using (\$4/1000):xtic(1) title 'Volume supplied (real)' lc rgb "#4E79A7", \
+  '' using ((\$3-\$4)/1000) title 'Lost volume (src - real)' lc rgb "#EB4034", \
+  '' using ((\$2-\$3)/1000) title 'Remaining volume (max - src)' lc rgb "#2DBD62"
 EOF
 }
 
