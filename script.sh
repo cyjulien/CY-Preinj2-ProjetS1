@@ -2,6 +2,7 @@
 
 # start Runtime
 start=$(date +%s.%N)
+echo "1:$1 2:$2 3:$3 4:$4"
 
 #Ensure proper file stucture
 mkdir -p ./DATA ./Histogram
@@ -110,6 +111,11 @@ if [[ $1 == "--help" ]]; then
   fi
 fi
 
+if [ ! -f "$1" ]; then
+  echo "Error: Data file not found: $1"
+  exit 1
+fi
+
 case $2 in #PARSE FIRST ARGUMENT
   "histo")
     make histo || exit 1 
@@ -158,7 +164,13 @@ case $validCommand in
     run_histo_command "$1" "all" 0 "Summary of all data"
     ;;
   5) #LEAKS COMMAND
-    echo "LEAKS COMMAND"
+    commandName="leaks"
+    echo "${commandName}: command started..."
+    awk -F ';' -v plantID="$3" '
+    $1 == plantID || $2 == plantID || $3 == plantID
+    ' "$1" | ./CODE/leaks/leaks "$3"
+    echo "${commandName}: data parsed, generating additional .csv files..."
+    echo "${commandName}: .csv files generated, generating images..."
     ;;
   *) #INVALID COMMAND
     echo $0": Invalid command please use \""$0" --help\" for more information."

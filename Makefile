@@ -27,9 +27,10 @@ leaks: $(HISTO_SRC)
 	$(CC) -o $(LEAKS_FILE) $(LEAKS_SRC) $(COMPILE_MATH)
 
 bash:
-	bash $(SCRIPT) $(DATA) $(TYPE) $(ARG)
+	bash $(SCRIPT) $(DATA) $(TYPE) "$(ARG)"
 
 clean:
 	rm -f $(HISTO_FILE)
+	rm -f $(LEAKS_FILE)
 	rm -f ./DATA/*.csv
 	rm -f ./Histogram/*.png

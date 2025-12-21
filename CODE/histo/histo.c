@@ -3,6 +3,8 @@
 #include "../utility/utility.h"
 #include "./histo.h"
 
+int e = 0; //count errors
+
 void AVLToCSV(FILE* file, Node* root) {
   if (root == NULL) return;
 
@@ -28,12 +30,16 @@ int main(int argc, char const *argv[]) {
     int max = atoi(strtok( NULL, ";" ) ?: "0"); //check for NULL
     double leaks = atof(strtok( NULL, ";" ) ?: "0"); //check for NULL
 
-    if (!facilitySrc || !id || !downstream) continue;
+    if (!facilitySrc || !id || !downstream) {
+      e++;
+      continue;
+    }
     
     if (strcmp(facilitySrc, "-") == 0 && strcmp(downstream, "-") == 0) { //FACILITY
       Node* exist = searchAVL(root, id);
       if (!exist || exist->address == NULL) {
-        printf("Facility %s not found\n", id);
+        printf("Facility %s not found in AVL (check if the data is correct)\n", id);
+        e++;
         continue;
       }
       exist->address->max = max;
@@ -42,7 +48,11 @@ int main(int argc, char const *argv[]) {
       Instance* facility = NULL;
       if (node == NULL) {
         facility = malloc(sizeof(Instance));
-        if (!facility) exit(88);
+        if (!facility) {
+          printf("Error: Memory allocation failed.\n");
+          e++;
+          exit(e);
+        }
         strncpy(facility->id, downstream, sizeof(facility->id)-1);
         facility->id[sizeof(facility->id)-1] = '\0';
         facility->max = 0;
@@ -55,7 +65,8 @@ int main(int argc, char const *argv[]) {
         n++;
       } else facility = node->address;
       if (facility == NULL) {
-        printf("Facility %s not found\n", downstream);
+        printf("Error: AVL element lacks an address field\n");
+        e++;
         continue;
       }
 
@@ -67,7 +78,8 @@ int main(int argc, char const *argv[]) {
   FILE* file = fopen("./DATA/all.csv", "w");
   if (!file) {
     printf("Failed to open %s.\n", "./DATA/all.csv");
-    exit(54);
+    e++;
+    exit(e);
   }
   fprintf(file, "id,max,src,real\n");
   AVLToCSV(file, root);
@@ -75,5 +87,5 @@ int main(int argc, char const *argv[]) {
 
   deleteAllChilds(&root);
 
-  return 0;
+  return e;
 }
