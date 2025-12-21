@@ -67,6 +67,41 @@ plot "${csv}" using (\$$col/1000):xtic(strcol(1)) with boxes lc rgb "#4E79A7"
 EOF
 }
 
+generate_plot_all() {
+
+  if [ ! -d "../Histogram" ]; then
+      mkdir -p ../Histogram
+  fi
+
+  local csv_file=$1
+  local png_file=$2
+  local title=$3
+
+  gnuplot <<EOF
+set datafile separator ','
+set terminal pngcairo size 1200,800
+set output '${png_file}'
+
+set title '${title}'
+set xlabel 'factory identifier'
+set ylabel 'million cubic meters'
+
+set xtics rotate by 45 right
+set style data histograms
+set style histogram rowstacked
+set style fill solid 0.8 border -1
+set boxwidth 0.8
+
+set key outside right top
+
+plot \
+  '${csv_file}' using (\$4/1000):xtic(1) title 'Volume supplied (réel)' lc rgb 'blue', \
+  '' using ((\$3-\$4)/1000) title 'Lost volume  (src - real)' lc rgb 'red', \
+  '' using ((\$2-\$3)/1000) title 'Remaining volume  (max - src)' lc rgb 'green'
+EOF
+}
+
+
 run_histo_command() {
   dataFile="$1"
   commandName="$2"
@@ -75,18 +110,27 @@ run_histo_command() {
 
   echo "${commandName}: command started..."
   histoParseData "$dataFile" "$commandName"
+
   echo "${commandName}: data parsed, generating additional .csv files..."
   extract_top_bottom
+
   echo "${commandName}: .csv files generated, generating images..."
 
+  # Choix de la fonction de génération
+  if [[ "$commandName" == "all" ]]; then
+    plot_function="generate_plot_all"
+  else
+    plot_function="generate_plot"
+  fi
+
   for f in top10 bottom50; do
-    title="$4"
     if [[ -f "./DATA/${f}.csv" ]]; then
-      generate_plot \
+      ${plot_function} \
         "./DATA/${f}.csv" \
         "./Histogram/${commandName}_${f}.png" \
         "${title} (${f})" \
         "${column}"
+
       echo "${commandName}: generated ${commandName}_${f}.png"
     else
       echo "Warning: No data found for ${f}, the image will not be generated."
