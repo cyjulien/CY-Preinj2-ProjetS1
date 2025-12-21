@@ -110,7 +110,6 @@ Node* balanceAVL(Node** node) {
 }
 
 Node* addChildAVL(Node** node, Instance* address, int* h) {
-
   if (*node == NULL) {
     *h = 1;
     *node = makeNodeAVL(address);

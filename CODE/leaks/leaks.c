@@ -4,6 +4,14 @@
 
 int e = 0; //count errors
 
+int compareID(const char* a, const char* b) {
+  char* parsedIdA = strchr(a, '#');
+  char* parsedIdB = strchr(b, '#');
+  if (!parsedIdA || !parsedIdB) return 0;
+  
+  return strcmp(parsedIdA, parsedIdB) == 0;
+}
+
 double calculateLeak(Instance* node, double incomingVolume) {
     if (!node || node->downstreamCount == 0) return 0.0;
 
@@ -57,7 +65,7 @@ int main(int argc, char const *argv[]) {
         e++;
         exit(e);
       }
-      strncpy(instance->id, downstream, sizeof(instance->id)-1);
+      strncpy(instance->id, id, sizeof(instance->id)-1);
       instance->id[sizeof(instance->id)-1] = '\0';
       instance->max = 0;
       instance->volume = 0;
@@ -73,7 +81,7 @@ int main(int argc, char const *argv[]) {
       e++;
       continue;
     }
-    if (strcmp(facilitySrc, "-") == 0 && strcmp(downstream, "-") == 0 && strcmp(id, argv[1]) == 0) { 
+    if (strcmp(facilitySrc, "-") == 0 && strcmp(downstream, "-") == 0 && compareID(id, argv[1])) {
       plant = instance;
       instance->max = volume;
     }
@@ -112,19 +120,17 @@ int main(int argc, char const *argv[]) {
         instance->downstream[instance->downstreamCount++] = downInst;
     }
   }
-  printTree(root, 0);
-  printf("\n");
+  //printTree(root, 0);
+  //printf("\n");
   printf("Count: %d\n", n);
 
   if (!plant) {
-      printf("Could not find a facility with id: %s\n", argv[1]);
-      plant->leaks = -1.0;
+    printf("Could not find a facility with id: %s\n", argv[1]);
   } else {
-    plant->leaks = calculateLeak(plant, plant->max);
-    plant->leaks /= 1000.0;
+    plant->leaks = calculateLeak(plant, plant->max) / 1000.0;
   }
 
-  printf("Total leaks for plant %s: %.3f M.m3\n", argv[1], plant->leaks);
+  printf("Total leaks for plant %s: %.3f M.m3\n", argv[1], plant ? plant->leaks : -1);
 
 
   FILE* file = fopen("./DATA/leaks_log.dat", "w");
@@ -133,7 +139,12 @@ int main(int argc, char const *argv[]) {
     e++;
     exit(e);
   }
-  fprintf(file, "%s;%d;%f;%s;%s\n", plant->id, plant->volume, plant->leaks, mostLeaksUp, mostLeaksDown);
+  if (plant) {
+    fprintf(file, "%s;%d;%f;%s;%s\n", plant->id, plant->volume, plant->leaks, mostLeaksUp, mostLeaksDown);
+  } else {
+    fprintf(file, "%s;-1;-1;-;-\n", argv[1]);
+  }
+  
   fclose(file);
 
   deleteAllChilds(&root);
