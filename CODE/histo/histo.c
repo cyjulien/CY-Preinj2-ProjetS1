@@ -3,88 +3,82 @@
 #include "../utility/utility.h"
 #include "./histo.h"
 
-int compare_max(const void *a, const void *b) {
-  const Facility *ua = a;
-  const Facility *ub = b;
-  return ua->max - ub->max;
+int compareMax(const void *a, const void *b) {
+    const Instance *ua = *(const Instance **)a;
+    const Instance *ub = *(const Instance **)b;
+    return ua->max - ub->max;
 }
 
-int compare_src(const void *a, const void *b) {
-  const Facility *ua = a;
-  const Facility *ub = b;
-  return ua->src - ub->src;
+int compareSrc(const void *a, const void *b) {
+    const Instance *ua = *(const Instance **)a;
+    const Instance *ub = *(const Instance **)b;
+    return ua->volume - ub->volume;
 }
 
-int compare_real(const void *a, const void *b) {
-  const Facility *ua = a;
-  const Facility *ub = b;
-  return ua->real - ub->real;
+int compareReal(const void *a, const void *b) {
+    const Instance *ua = *(const Instance **)a;
+    const Instance *ub = *(const Instance **)b;
+    return (ua->leaks > ub->leaks) - (ua->leaks < ub->leaks);
 }
 
 int main(int argc, char const *argv[]) {
-  char buf[256];
+  char input[256];
   int n = 0;
   int h = 0;
   Node* root = NULL;
-  while (fgets(buf, sizeof(buf), stdin)) {
-    char* facilitySrc = strtok( buf, ";" );
+  while (fgets(input, sizeof(input), stdin)) {
+    char* facilitySrc = strtok( input, ";" );
     char* id = strtok( NULL, ";" );
-    char* aval = strtok( NULL, ";" );
-    char* tmp = strtok( NULL, ";" );
+    char* downstream = strtok( NULL, ";" );
+    char* tmp = strtok( NULL, ";" ); //temporary variable to check for NULL
     int max = tmp ? atoi(tmp) : 0;
-    tmp = strtok( NULL, ";" );
-    float fuite = tmp ? atof(tmp) : 0.0;
-    if (n<10) printf("Reading: %s\n", id);
+    tmp = strtok( NULL, ";" ); //temporary variable to check for NULL
+    double leaks = tmp ? atof(tmp) : 0.0;
 
-    if (!id || !max) continue;
-
-    if (strcmp(facilitySrc, "-") == 0 && strcmp(aval, "-") == 0) { //FACILITY
+    if (!facilitySrc || !id || !downstream) continue;
+    
+    if (strcmp(facilitySrc, "-") == 0 && strcmp(downstream, "-") == 0) { //FACILITY
       Node* exist = searchAVL(root, id);
-      if (!exist) {
-        printf("Facility %s not found\n", id);
-        exit(12);
-      }
-      if (exist->address == NULL) {
+      if (!exist || exist->address == NULL) {
         printf("Facility %s not found\n", id);
         continue;
       }
       exist->address->max = max;
     } else { //SOURCE -> FACILITY
-      Node* node = searchAVL(root, aval);
-      Facility* facility = NULL;
+      Node* node = searchAVL(root, downstream);
+      Instance* facility = NULL;
       if (node == NULL) {
-        facility = malloc(sizeof(Facility));
+        facility = malloc(sizeof(Instance));
         if (!facility) exit(88);
-        strncpy(facility->id, aval, sizeof(facility->id)-1);
+        strncpy(facility->id, downstream, sizeof(facility->id)-1);
         facility->id[sizeof(facility->id)-1] = '\0';
         facility->max = 0;
-        facility->src = 0;
-        facility->real = 0;
-        int h = 0;
+        facility->volume = 0;
+        facility->leaks = 0;
+        facility->downstream = NULL;
+        facility->downstreamCount = 0;
+        h = 0;
         addChildAVL(&root, facility, &h);
         n++;
       } else facility = node->address;
       if (facility == NULL) {
-        printf("Facility %s not found\n", id);
+        printf("Facility %s not found\n", downstream);
         continue;
       }
 
-      facility->src += max;
-      facility->real += max*(1-(fuite/100.0));
-      if (facility->real > max) facility->real = max;
+      facility->volume += max;
+      facility->leaks += max*(1-(leaks/100.0));
     }
   }
 
-  printTree(root, 0);
-  printf("\n");
-  printf("Count: %d\n", n);
-
   int index = 0;
-  Facility** list = malloc(n * sizeof(Facility*));
-  if (!list) exit(88);
-  AVLToList(root, list, &index);
-
-
+  Instance** facilities = malloc(n * sizeof(Instance*));
+  if (!facilities) exit(88);
+  AVLToList(root, facilities, &index);
+  for (int i = 0; i < n; i++) {
+    if (facilities[i]->leaks > facilities[i]->max) facilities[i]->leaks = facilities[i]->max;
+  }
+  
   if (argc < 2) {
     deleteAllChilds(&root);
     printf("No command was passed to: histo.c (only %d/2 arguments were read).\n", argc);
@@ -92,14 +86,12 @@ int main(int argc, char const *argv[]) {
   }
   
   if (strcmp(argv[1], "max") == 0) {
-    qsort(list, n, sizeof(Facility*), compare_max);
+    qsort(facilities, n, sizeof(Instance*), compareMax);
   } else if (strcmp(argv[1], "src") == 0) {
-    qsort(list, n, sizeof(Facility*), compare_src);
+    qsort(facilities, n, sizeof(Instance*), compareSrc);
   } else if (strcmp(argv[1], "real") == 0) {
-    qsort(list, n, sizeof(Facility*), compare_real);
+    qsort(facilities, n, sizeof(Instance*), compareReal);
   }
-
-  deleteAllChilds(&root);
 
   // bottom 50
   FILE *csv1 = fopen("./DATA/bottom50.csv", "w");
@@ -110,7 +102,7 @@ int main(int argc, char const *argv[]) {
   
   fprintf(csv1, "id,max,src,real\n");
   for (int i = 0; i < 50 && i < n; i++) {
-      fprintf(csv1, "%s,%d,%d,%f\n", list[i]->id, list[i]->max, list[i]->src, list[i]->real);
+    fprintf(csv1, "%s,%d,%d,%.6f\n", facilities[i]->id, facilities[i]->max, facilities[i]->volume, facilities[i]->leaks);
   }
   fclose(csv1);
 
@@ -121,11 +113,13 @@ int main(int argc, char const *argv[]) {
     exit(54);
   }
   fprintf(csv2, "id,max,src,real\n");
-  for (int i = n - 10; i < n; i++) {
-      if (i >= 0)
-          fprintf(csv2, "%s,%d,%d,%f\n", list[i]->id, list[i]->max, list[i]->src, list[i]->real);
+  for (int i = max2(n - 10, 0); i < n; i++) {
+    fprintf(csv2, "%s,%d,%d,%.6f\n", facilities[i]->id, facilities[i]->max, facilities[i]->volume, facilities[i]->leaks);
   }
   fclose(csv2);
+
+  deleteAllChilds(&root);
+  free(facilities);
 
   return 0;
 }

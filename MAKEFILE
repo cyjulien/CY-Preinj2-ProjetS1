@@ -8,4 +8,5 @@ all:
 	bash $(SCRIPT) $(DATA) $(TYPE) $(ARG)
 
 clean:
+	rm -f ./DATA/*.csv
 	rm -f ./Histogram/*.png

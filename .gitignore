@@ -60,6 +60,10 @@ dkms.conf
 #Compiled files
 histo
 leaks
+#Generated files
+*.png
+*.csv
+
 
 #Big data file
 data_v3.dat

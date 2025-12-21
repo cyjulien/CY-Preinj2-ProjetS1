@@ -2,7 +2,7 @@
 #include "./AVL.h"
 #include "./utility.h"
 
-Node* makeNodeAVL(Facility* address) {
+Node* makeNodeAVL(Instance* address) {
   Node* node = NULL;
   node = malloc(sizeof(Node));
   if (node == NULL) exit(1);
@@ -22,23 +22,17 @@ int hasRightChild(Node* node) {
   return node->right != NULL;
 }
 void deleteAllChilds(Node** node) {
-  if (*node == NULL) return;
+  if (node == NULL || (*node) == NULL) return;
   deleteAllChilds(&(*node)->left);
   deleteAllChilds(&(*node)->right);
+  if ((*node)->address){
+    freeInstance((*node)->address);
+    (*node)->address = NULL;
+  }
   free(*node);
   *node = NULL;
 }
-void deleteLeftChild(Node** node) {
-  if (*node == NULL || (*node)->left == NULL) return;
-  deleteAllChilds(&(*node)->left);
-  (*node)->left = NULL;
-}
-void deleteRightChild(Node** node) {
-  if (*node == NULL || (*node)->right == NULL) return;
-  deleteAllChilds(&(*node)->right);
-  (*node)->right = NULL;
-}
-void AVLToList(Node* root, Facility** list, int* index) {
+void AVLToList(Node* root, Instance** list, int* index) {
   if (root == NULL) return;
 
   AVLToList(root->left, list, index);
@@ -115,7 +109,7 @@ Node* balanceAVL(Node** node) {
   return *node;
 }
 
-Node* addChildAVL(Node** node, Facility* address, int* h) {
+Node* addChildAVL(Node** node, Instance* address, int* h) {
 
   if (*node == NULL) {
     *h = 1;
@@ -169,7 +163,7 @@ Node* deleteMin(Node** node, char* nodeToDelete, int* h) {
   }
   return *node;
 }
-Node* deleteElementAVL(Node** node, Facility* address, int* h) {
+Node* deleteElementAVL(Node** node, Instance* address, int* h) {
   if (*node == NULL) {
     *h = 0;
     return *node;
