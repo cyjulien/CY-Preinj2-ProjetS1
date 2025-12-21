@@ -6,6 +6,26 @@ start=$(date +%s.%N)
 #Ensure proper file stucture
 mkdir -p ./DATA ./Histogram
 
+histoParseData() {
+  awk -F ';' '
+  #SOURCE -> PLANT
+  $1 == "-" &&
+  $4 ~ /^[0-9]+$/ &&
+  $5 ~ /^[0-9.]+$/ {
+      print
+      next
+  }
+
+  #PLANT
+  $1 == "-" &&
+  $3 == "-" &&
+  $4 ~ /^[0-9]+$/ &&
+  $5 == "-" {
+      print
+  }
+  ' "$1" | ./CODE/histo/histo "$2"
+}
+
 extract_top_bottom() {
   {
     head -n 1 ./DATA/all.csv
@@ -47,24 +67,31 @@ plot "${csv}" using (\$$col/1000):xtic(strcol(1)) with boxes lc rgb "#4E79A7"
 EOF
 }
 
-histo() {
-  awk -F ';' '
-  #SOURCE -> PLANT
-  $1 == "-" &&
-  $4 ~ /^[0-9]+$/ &&
-  $5 ~ /^[0-9.]+$/ {
-      print
-      next
-  }
+run_histo_command() {
+  dataFile="$1"
+  commandName="$2"
+  column="$3"
+  title="$4"
 
-  #PLANT
-  $1 == "-" &&
-  $3 == "-" &&
-  $4 ~ /^[0-9]+$/ &&
-  $5 == "-" {
-      print
-  }
-  ' "$1" | ./CODE/histo/histo "$2"
+  echo "${commandName}: command started..."
+  histoParseData "$dataFile" "$commandName"
+  echo "${commandName}: data parsed, generating additional .csv files..."
+  extract_top_bottom
+  echo "${commandName}: .csv files generated, generating images..."
+
+  for f in top10 bottom50; do
+    title="$4"
+    if [[ -f "./DATA/${f}.csv" ]]; then
+      generate_plot \
+        "./DATA/${f}.csv" \
+        "./Histogram/${commandName}_${f}.png" \
+        "${title} (${f})" \
+        "${column}"
+      echo "${commandName}: generated ${commandName}_${f}.png"
+    else
+      echo "Warning: No data found for ${f}, the image will not be generated."
+    fi
+  done
 }
 
 validCommand=0
@@ -116,58 +143,13 @@ esac
 
 case $validCommand in
   1) #MAX COMMAND
-    commandName="max"
-    column=2 #This is the column that will be looked up in the generated .csv
-    echo "${commandName}: command started..."
-    histo "$1" "$3" #Send the data to the histo program that will generate a .csv file
-    echo "${commandName}: data parsed, generating additional .csv files..."
-    extract_top_bottom
-    echo "${commandName}: .csv files generated, generating images..."
-
-    for f in top10 bottom50; do
-      if [[ -f "./DATA/${f}.csv" ]]; then
-        generate_plot "./DATA/${f}.csv" "./Histogram/${commandName}_${f}.png" "Maximum volume of water processed for each facility (${f})" "${column}"
-        echo "${commandName}: generated ${commandName}_${f}.png"
-      else
-        echo "Warning: No data found for ${f}, the image will not be generated."
-      fi
-    done
+    run_histo_command "$1" "max" 2 "Maximum volume of water processed for each facility"
     ;;
   2) #SRC COMMAND
-    commandName="src"
-    column=3 #This is the column that will be looked up in the generated .csv
-    echo "${commandName}: command started..."
-    histo "$1" "$3" #Send the data to the histo program that will generate a .csv file
-    echo "${commandName}: data parsed, generating additional .csv files..."
-    extract_top_bottom
-    echo "${commandName}: .csv files generated, generating images..."
-
-    for f in top10 bottom50; do
-      if [[ -f "./DATA/${f}.csv" ]]; then
-        generate_plot "./DATA/${f}.csv" "./Histogram/${commandName}_${f}.png" "Total volume of water captured by the sources of each facility (${f})" "${column}"
-        echo "${commandName}: generated ${commandName}_${f}.png"
-      else
-        echo "Warning: No data found for ${f}, the image will not be generated."
-      fi
-    done
+    run_histo_command "$1" "src" 3 "Total volume of water captured by the sources of each facility"
     ;;
   3) #REAL COMMAND
-    commandName="real"
-    column=4 #This is the column that will be looked up in the generated .csv
-    echo "${commandName}: command started..."
-    histo "$1" "$3" #Send the data to the histo program that will generate a .csv file
-    echo "${commandName}: data parsed, generating additional .csv files..."
-    extract_top_bottom
-    echo "${commandName}: .csv files generated, generating images..."
-
-    for f in top10 bottom50; do
-      if [[ -f "./DATA/${f}.csv" ]]; then
-        generate_plot "./DATA/${f}.csv" "./Histogram/${commandName}_${f}.png" "Total volume of water processed for each facility accounting for leaks (${f})" "${column}"
-        echo "${commandName}: generated ${commandName}_${f}.png"
-      else
-        echo "Warning: No data found for ${f}, the image will not be generated."
-      fi
-    done
+    run_histo_command "$1" "real" 4 "Total volume of water processed for each facility accounting for leaks"
     ;;
   4) #LEAKS COMMAND
     echo "LEAKS COMMAND"
