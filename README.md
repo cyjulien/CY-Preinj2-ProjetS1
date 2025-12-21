@@ -1,4 +1,4 @@
-[This README is also available in French!]([TODO.html](https://github.com/cyjulien/CY-Preinj2-ProjetS1/tree/main/README_FR.md))
+[This README is also available in French!](https://github.com/cyjulien/CY-Preinj2-ProjetS1/blob/main/README_FR.md)
 
 # C-Wildwater Project
 
