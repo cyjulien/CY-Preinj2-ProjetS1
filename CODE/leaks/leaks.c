@@ -119,8 +119,10 @@ int main(int argc, char const *argv[]) {
         }
         if (strcmp(facilitySrc, "-") == 0 && compareID(downInst->id, argv[1])) downInst->volume += volume * (1.0 - leaks/100.0);
         
-        instance->downstream = realloc(instance->downstream, sizeof(Instance*) * (instance->downstreamCount+1));
-        instance->downstream[instance->downstreamCount++] = downInst;
+        if (instance) {
+          instance->downstream = realloc(instance->downstream, sizeof(Instance*) * (instance->downstreamCount+1));
+          instance->downstream[instance->downstreamCount++] = downInst;
+        }
     }
   }
   //printTree(root, 0);
@@ -136,16 +138,16 @@ int main(int argc, char const *argv[]) {
   printf("Total leaks for plant %s: %.3f M.m3\n", argv[1], plant ? plant->leaks : -1);
 
 
-  FILE* file = fopen("./DATA/leaks_log.dat", "w");
+  FILE* file = fopen("./DATA/leaks_log.dat", "a");
   if (!file) {
     printf("Failed to open %s.\n", "./DATA/all.csv");
     e++;
     exit(e);
   }
   if (plant) {
-    fprintf(file, "%s;%f;%f;%s;%s\n", plant->id, plant->leaks, plant->leaks/plant->volume, mostLeaksUp, mostLeaksDown);
+    fprintf(file, "%s;%f M.m³;%f;%s;%s\n", plant->id, plant->leaks, plant->leaks/plant->volume, mostLeaksUp, mostLeaksDown);
   } else {
-    fprintf(file, "%s;-1;-1;-;-\n", argv[1]);
+    fprintf(file, "%s;-1 M.m³;-1;-;-\n", argv[1]);
   }
   
   fclose(file);
