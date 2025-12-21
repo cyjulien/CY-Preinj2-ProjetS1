@@ -125,9 +125,6 @@ int main(int argc, char const *argv[]) {
         }
     }
   }
-  //printTree(root, 0);
-  //printf("\n");
-  printf("Count: %d\n", n);
 
   if (!plant) {
     printf("Could not find a facility with id: %s\n", argv[1]);
