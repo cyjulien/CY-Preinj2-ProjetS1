@@ -15,16 +15,16 @@ int compareID(const char* a, const char* b) {
 double calculateLeak(Instance* node, double volume) {
   if (!node || node->downstreamCount == 0) return 0.0;
 
+  //We cap the water distributed by facilities here
   if (node->max != 0 && volume > node->max) volume = node->max;
 
   double leakSum = 0.0;
   double splitVolume = volume / node->downstreamCount;
 
   for (int i = 0; i < node->downstreamCount; i++) {
-    Instance* child = node->downstream[i];
-    double edgeLeak = splitVolume * (child->leaks / 100.0);
+    double edgeLeak = splitVolume * (node->downstream[i]->leaks / 100.0);
     leakSum += edgeLeak;
-    leakSum += calculateLeak(child, splitVolume - edgeLeak);
+    leakSum += calculateLeak(node->downstream[i], splitVolume - edgeLeak);
   }
 
   return leakSum;
