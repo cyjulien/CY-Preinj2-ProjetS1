@@ -3,8 +3,6 @@
 #include "../utility/utility.h"
 #include "./histo.h"
 
-int e = 0; //count errors
-
 void AVLToCSV(FILE* file, Node* root) {
   if (root == NULL) return;
 
@@ -19,6 +17,8 @@ void AVLToCSV(FILE* file, Node* root) {
 }
 
 int main(int argc, char const *argv[]) {
+  int e = 0; //count errors
+  
   char input[256];
   int n = 0;
   int h = 0;

@@ -2,8 +2,6 @@
 #include "../utility/AVL.h"
 #include "./leaks.h"
 
-int e = 0; //count errors
-
 int compareID(const char* a, const char* b) {
   char* parsedIdA = strchr(a, '#');
   char* parsedIdB = strchr(b, '#');
@@ -38,13 +36,14 @@ double calculateLeak(Instance* node, double volume, double* maxLeak, char** most
 
 
 int main(int argc, char const *argv[]) {
+  int e = 0; //count errors
+
   if (argc < 2) {
     printf("Error: no Facility ID provided.");
     e++;
     exit(e);
   }
   char input[256];
-  int n = 0;
   int h = 0;
   Node* root = NULL;
   Instance* plant = NULL;
@@ -82,7 +81,6 @@ int main(int argc, char const *argv[]) {
         instance->downstreamCount = 0;
         h = 0;
         addChildAVL(&root, instance, &h);
-        n++;
       } else instance = node->address;
       if (instance == NULL) {
         printf("Error: AVL element lacks an address field\n");
@@ -114,7 +112,6 @@ int main(int argc, char const *argv[]) {
             downInst->downstreamCount = 0;
             int h = 0;
             addChildAVL(&root, downInst, &h);
-            n++;
         } else downInst = downNode->address;
         if (downInst == NULL) {
           printf("Error: AVL element lacks an address field\n");
@@ -127,7 +124,13 @@ int main(int argc, char const *argv[]) {
         
         if (instance) {
           downInst->leaks += leaks;
-          instance->downstream = realloc(instance->downstream, sizeof(Instance*) * (instance->downstreamCount+1));
+          Instance** reallocMemory = realloc(instance->downstream, sizeof(Instance*) * (instance->downstreamCount + 1));
+          if (!reallocMemory) {
+            printf("Error: Memory allocation failed.\n");
+            e++;
+            exit(e);
+          }
+          instance->downstream = reallocMemory;
           instance->downstream[instance->downstreamCount++] = downInst;
         }
     }
@@ -148,7 +151,7 @@ int main(int argc, char const *argv[]) {
     exit(e);
   }
   if (plant) {
-    fprintf(file, "%s;%.3f k.m³;%.3f;%s;%s\n", plant->id, plant->leaks, plant->leaks/plant->volume, mostLeaksUp, mostLeaksDown);
+    fprintf(file, "%s;%.3f k.m³;%.3f;%s;%s\n", plant->id, plant->leaks, plant->leaks/plant->volume, mostLeaksUp ?: "-", mostLeaksDown ?: "-");
   } else {
     fprintf(file, "%s;-1 k.m³;-1;-;-\n", argv[1]);
   }
