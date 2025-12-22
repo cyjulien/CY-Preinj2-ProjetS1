@@ -56,7 +56,7 @@ make DATA=file_path.dat TYPE=leaks ARG=plant_id
 
 ```
 
--> Expected output: the actual percentage loss value displayed in the terminal
+-> Expected output: a new line in DATA/leaks_log.dat
 
 Clean up the files:
 ```

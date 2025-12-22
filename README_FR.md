@@ -56,7 +56,7 @@ make DATA=chemin_fichier.dat TYPE=leaks ARG=identifiant_usine
 
 ```
 
--> Sortie attendu : la valeur réel du pourcentage de perte affiché dans le terminal
+-> Sortie attendu : une nouvelle ligne dans DATA/leaks_log.dat
 
 Nettoyer les fichiers:
 ```
