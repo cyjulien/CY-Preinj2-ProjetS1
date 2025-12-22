@@ -131,6 +131,8 @@ run_histo_command() {
       echo "Warning: No data found for ${f}, the image will not be generated."
     fi
   done
+
+  echo "${commandName}: done."
 }
 
 validCommand=0
@@ -207,8 +209,7 @@ case $validCommand in
     awk -F ';' -v plantID="$3" '
     $1 ~ plantID || $2 ~ plantID || $3 ~ plantID
     ' "$1" | ./CODE/leaks/leaks "$3"
-    echo "${commandName}: data parsed, generating additional .csv files..."
-    echo "${commandName}: .csv files generated, generating images..."
+    echo "${commandName}: done."
     ;;
   *) #INVALID COMMAND
     echo $0": Invalid command please use \""$0" --help\" for more information."

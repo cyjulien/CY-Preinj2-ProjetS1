@@ -33,4 +33,5 @@ clean:
 	rm -f $(HISTO_FILE)
 	rm -f $(LEAKS_FILE)
 	rm -f ./DATA/*.csv
+	rm -f ./DATA/leaks_log.dat
 	rm -f ./Histogram/*.png

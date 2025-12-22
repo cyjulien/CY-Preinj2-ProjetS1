@@ -12,24 +12,29 @@ int compareID(const char* a, const char* b) {
   return strcmp(parsedIdA, parsedIdB) == 0;
 }
 
-double calculateLeak(Instance* node, double volume) {
+double calculateLeak(Instance* node, double volume, double* maxLeak, char** mostLeaksUp, char** mostLeaksDown) {
   if (!node || node->downstreamCount == 0) return 0.0;
-
+  
   //We cap the water distributed by facilities here
   if (node->max != 0 && volume > node->max) volume = node->max;
-
+  
   double leakSum = 0.0;
-  double splitVolume = volume / node->downstreamCount;
-
+  
   for (int i = 0; i < node->downstreamCount; i++) {
-    double edgeLeak = splitVolume * (node->downstream[i]->leaks / 100.0);
-    leakSum += edgeLeak;
-    leakSum += calculateLeak(node->downstream[i], splitVolume - edgeLeak);
+    node->downstream[i]->volume = volume / node->downstreamCount;
+    
+    double leak = node->downstream[i]->volume * (node->downstream[i]->leaks / 100.0);
+    if (leak > *maxLeak) {
+      *maxLeak = leak;
+      *mostLeaksUp = node->id;
+      *mostLeaksDown = node->downstream[i]->id;
+    }
+    node->downstream[i]->volume -= leak;
+    leakSum += leak;
+    leakSum += calculateLeak(node->downstream[i], node->downstream[i]->volume, maxLeak, mostLeaksUp, mostLeaksDown);
   }
-
   return leakSum;
 }
-
 
 
 int main(int argc, char const *argv[]) {
@@ -43,6 +48,7 @@ int main(int argc, char const *argv[]) {
   int h = 0;
   Node* root = NULL;
   Instance* plant = NULL;
+  double maxLeak = 0.0;
   char* mostLeaksUp = NULL;
   char* mostLeaksDown = NULL;
   while (fgets(input, sizeof(input), stdin)) {
@@ -87,8 +93,6 @@ int main(int argc, char const *argv[]) {
         plant = instance;
         instance->max = volume;
       }
-      instance->volume += volume;
-      instance->leaks += leaks;
     }
     
     if (strcmp(downstream, "-") != 0) {
@@ -117,24 +121,26 @@ int main(int argc, char const *argv[]) {
           e++;
           continue;
         }
-        if (strcmp(facilitySrc, "-") == 0 && compareID(downInst->id, argv[1])) downInst->volume += volume * (1.0 - leaks/100.0);
+        if (strcmp(facilitySrc, "-") == 0 && compareID(downInst->id, argv[1])) {
+          downInst->volume += volume * (1.0 - leaks/100.0);
+        }
         
         if (instance) {
+          downInst->leaks += leaks;
           instance->downstream = realloc(instance->downstream, sizeof(Instance*) * (instance->downstreamCount+1));
           instance->downstream[instance->downstreamCount++] = downInst;
         }
     }
   }
 
+  printf("leaks: data parsed, computing leaks...\n");
   if (!plant) {
     printf("Could not find a facility with id: %s\n", argv[1]);
   } else {
-    plant->leaks = calculateLeak(plant, plant->volume) / 1000.0;
+    plant->leaks = calculateLeak(plant, plant->volume, &maxLeak, &mostLeaksUp, &mostLeaksDown);
   }
 
-  printf("Total leaks for plant %s: %.3f M.m3\n", argv[1], plant ? plant->leaks : -1);
-
-
+  printf("leaks: values computed, generating .dat file...\n");
   FILE* file = fopen("./DATA/leaks_log.dat", "a");
   if (!file) {
     printf("Failed to open %s.\n", "./DATA/all.csv");
@@ -142,9 +148,9 @@ int main(int argc, char const *argv[]) {
     exit(e);
   }
   if (plant) {
-    fprintf(file, "%s;%f M.m³;%f;%s;%s\n", plant->id, plant->leaks, plant->leaks/plant->volume, mostLeaksUp, mostLeaksDown);
+    fprintf(file, "%s;%.3f k.m³;%.3f;%s;%s\n", plant->id, plant->leaks, plant->leaks/plant->volume, mostLeaksUp, mostLeaksDown);
   } else {
-    fprintf(file, "%s;-1 M.m³;-1;-;-\n", argv[1]);
+    fprintf(file, "%s;-1 k.m³;-1;-;-\n", argv[1]);
   }
   
   fclose(file);

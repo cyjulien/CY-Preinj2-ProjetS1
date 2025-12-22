@@ -12,7 +12,7 @@ void AVLToCSV(FILE* file, Node* root) {
 
   if (root->address != NULL) {
     if (root->address->leaks > root->address->max) root->address->leaks = root->address->max; //we put this check here to optimize having to traverse the whole AVL
-    if (file != NULL) fprintf(file, "%s,%d,%d,%.6f\n", root->address->id, root->address->max, root->address->volume, root->address->leaks);
+    if (file != NULL) fprintf(file, "%s,%d,%.0f,%.6f\n", root->address->id, root->address->max, root->address->volume, root->address->leaks);
   }
 
   AVLToCSV(file, root->left);
