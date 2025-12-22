@@ -195,19 +195,3 @@ Node* deleteElementAVL(Node** node, Instance* address, int* h) {
   }
   return *node;
 }
-
-void printTree(Node *root, int space) {//ChatGPT function for debugging
-    if (root == NULL) return;
-    // Increase distance between levels
-    int indent = 5;
-    space += indent;
-    // Process right child first (will be printed on top)
-    printTree(root->right, space);
-    // Print current node after space count
-    printf("\n");
-    for (int i = indent; i < space; i++)
-        printf(" ");
-    printf("%s\n", root->address->id);
-    // Process left child (will be printed below)
-    printTree(root->left, space);
-}
